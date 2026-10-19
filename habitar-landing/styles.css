@@ -32,6 +32,7 @@
   --gutter: 16px;
   --section: clamp(80px, 10vw, 160px);
   --ease: cubic-bezier(.2, .7, .2, 1);
+  color-scheme: light;
 }
 
 @media (min-width: 768px) { :root { --gutter: 32px; } }
@@ -91,7 +92,7 @@ ul, ol { margin: 0; padding: 0; }
 .btn--wa:hover { background: #3be27a; }
 
 /* Topo */
-.topbar { position: sticky; top: 0; z-index: 50; background: var(--bg); transition: box-shadow .25s; }
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--bg); transition: box-shadow .25s; }
 .topbar.is-scrolled { box-shadow: 0 1px 0 rgba(19, 33, 61, .06), 0 6px 20px rgba(13, 26, 54, .05); }
 .topbar__in { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 72px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--navy); }

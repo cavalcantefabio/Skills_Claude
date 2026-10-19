@@ -138,8 +138,9 @@
       input.addEventListener('input', function () { mask(input); render(); });
     });
 
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
+    // O link do WhatsApp é atualizado a cada alteração, para funcionar como um link comum
+    var send = document.getElementById('enviar-plano');
+    var updateLink = function () {
       var s = state();
       var lines = ['Olá! Encontrei o escritório pelo site e gostaria de saber mais sobre financiamento imobiliário.'];
       if (s.valor) {
@@ -151,9 +152,12 @@
       lines.push('• Uso do FGTS: ' + form.fgts.value,
         '• Tipo de imóvel: ' + form.tipo.value,
         '• Cidade: ' + form.cidade.value);
-      var url = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(lines.join('\n'));
-      window.open(url, '_blank', 'noopener');
-    });
+      send.href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(lines.join('\n'));
+    };
+    form.addEventListener('input', updateLink);
+    form.addEventListener('change', updateLink);
+    form.addEventListener('submit', function (e) { e.preventDefault(); });
+    updateLink();
   }
 
   var ano = document.getElementById('ano');
