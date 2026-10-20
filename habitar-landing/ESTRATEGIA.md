@@ -178,8 +178,8 @@ Todos os links já estão prontos no HTML e funcionam mesmo sem JavaScript.
 
 ## 5. Orientação visual
 
-- **Paleta:** fundo off-white neutro `#F9F8F6`, superfícies `#F0EEEA`, texto e cor institucional azul-marinho `#13254A` / `#13213D`, dourado `#C2A06A` em detalhes, marcadores e botões sobre fundo escuro (dourado escuro `#85652F` para texto sobre fundo claro, com contraste AA). O verde do WhatsApp aparece só nos botões de WhatsApp, para serem reconhecidos na hora.
-- **Tipografia:** *Fraunces* (serifada contemporânea) nos títulos, para o tom sofisticado e acolhedor; *Manrope* no texto, legível em telas pequenas. Texto base de 17px.
+- **Paleta (derivada do logotipo):** preto/grafite `#161411` e preto profundo `#0A0908` como cor institucional (topo, seção "Por que assessoria", CTA final; rodapé em preto puro para o logotipo se fundir ao fundo), dourado do logo `#C9963A` nos botões principais, marcadores e no sol da ilustração, dourado claro `#E3BD6E` para títulos sobre fundo escuro e dourado escuro `#87601A` para texto sobre fundo claro (contraste AA). Fundo off-white quente `#FAF8F4` e superfícies `#F2EEE7`. O verde do WhatsApp aparece só nos botões de WhatsApp.
+- **Tipografia:** *Cinzel* apenas no nome HABITAR do cabeçalho (mesma família de letras romanas do logotipo); *Fraunces* (serifada contemporânea) nos títulos, para o tom sofisticado e acolhedor; *Manrope* no texto, legível em telas pequenas. Texto base de 17px.
 - **Cantos e sombras:** cards com raio de 14px; sombra muito sutil só no planejador e no cartão de contato (os demais se separam por tom de fundo).
 - **Ritmo:** seções alternam fundo claro, cinza-claro e azul-marinho, com bastante espaço em branco. Nenhuma seção repete o layout da vizinha.
 - **Por seção:** hero em azul-marinho com a ilustração da orla emoldurada à direita (abaixo do texto no celular); serviços em duas colunas com título fixo ao rolar; planejador em card branco; "Por que assessoria" em azul-marinho com a barra da compra; bancos em grade de logotipos em tons de cinza (ficam coloridos ao passar o mouse); jornada em cards com números dourados, escalonados no desktop; sobre com foto em 4:5 e filete dourado; perguntas em cards; FAQ em acordeão com título fixo; contato com cartão sobreposto ao mapa; CTA final em azul profundo; rodapé com o telefone em tamanho grande.
@@ -222,7 +222,8 @@ O ambiente onde a página foi construída não tem acesso a bancos de imagens, e
 
 - [ ] Domínio (`[PREENCHER-DOMINIO]` em `index.html`, `robots.txt`, `sitemap.xml`)
 - [ ] CEP (rodapé, contato e dados estruturados)
-- [ ] Foto da Rosane em `assets/img/rosane-de-simone.jpg`
+- [x] Foto da Rosane (`assets/img/rosane-de-simone.jpg`)
+- [x] Logotipo (`assets/img/logo-habitar.jpg`, no rodapé; marca redesenhada em vetor no cabeçalho e no favicon)
 - [ ] Cargo/especialidade, anos de experiência e breve história profissional
 - [ ] Logotipos das instituições financeiras confirmadas (e autorização de uso das marcas)
 - [ ] Forma de remuneração da assessoria (FAQ)
