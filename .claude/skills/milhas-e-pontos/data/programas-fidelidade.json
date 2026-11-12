@@ -1,0 +1,87 @@
+{
+  "_meta": {
+    "descricao": "Programas de fidelidade relevantes para viajantes brasileiros. MODELO INICIAL: paridades, bônus e valores mudam com frequência. Preencha os campos com valor null após verificar no site oficial e registre a data em 'verificado_em'.",
+    "atualizado_em": null,
+    "validade_dias": 30
+  },
+  "programas_banco": [
+    {
+      "id": "livelo",
+      "nome": "Livelo",
+      "tipo": "pontos de banco/cartão",
+      "site": "https://www.livelo.com.br",
+      "transfere_para": [
+        { "programa": "smiles", "paridade": null, "verificado_em": null },
+        { "programa": "latam_pass", "paridade": null, "verificado_em": null },
+        { "programa": "azul_fidelidade", "paridade": null, "verificado_em": null },
+        { "programa": "tap_miles_and_go", "paridade": null, "verificado_em": null }
+      ]
+    },
+    {
+      "id": "esfera",
+      "nome": "Esfera",
+      "tipo": "pontos de banco/cartão",
+      "site": "https://www.esfera.com.vc",
+      "transfere_para": [
+        { "programa": "smiles", "paridade": null, "verificado_em": null },
+        { "programa": "latam_pass", "paridade": null, "verificado_em": null },
+        { "programa": "azul_fidelidade", "paridade": null, "verificado_em": null }
+      ]
+    }
+  ],
+  "programas_aereos": [
+    {
+      "id": "smiles",
+      "nome": "Smiles",
+      "companhia": "GOL",
+      "alianca": null,
+      "site": "https://www.smiles.com.br",
+      "milheiro_referencia_brl": null,
+      "verificado_em": null
+    },
+    {
+      "id": "latam_pass",
+      "nome": "LATAM Pass",
+      "companhia": "LATAM",
+      "alianca": null,
+      "site": "https://latampass.latam.com",
+      "milheiro_referencia_brl": null,
+      "verificado_em": null
+    },
+    {
+      "id": "azul_fidelidade",
+      "nome": "Azul Fidelidade",
+      "companhia": "Azul",
+      "nome_anterior": "TudoAzul",
+      "alianca": null,
+      "site": "https://www.voeazul.com.br",
+      "milheiro_referencia_brl": null,
+      "verificado_em": null
+    },
+    {
+      "id": "tap_miles_and_go",
+      "nome": "TAP Miles&Go",
+      "companhia": "TAP Air Portugal",
+      "alianca": "Star Alliance",
+      "site": "https://www.flytap.com",
+      "milheiro_referencia_brl": null,
+      "verificado_em": null
+    },
+    {
+      "id": "flying_blue",
+      "nome": "Flying Blue",
+      "companhia": "Air France-KLM",
+      "alianca": "SkyTeam",
+      "site": "https://www.flyingblue.com",
+      "milheiro_referencia_brl": null,
+      "verificado_em": null
+    }
+  ],
+  "programas_hotel": [
+    { "id": "accor_all", "nome": "ALL - Accor Live Limitless", "site": "https://all.accor.com" },
+    { "id": "marriott_bonvoy", "nome": "Marriott Bonvoy", "site": "https://www.marriott.com" },
+    { "id": "hilton_honors", "nome": "Hilton Honors", "site": "https://www.hilton.com" },
+    { "id": "ihg_one_rewards", "nome": "IHG One Rewards", "site": "https://www.ihg.com" },
+    { "id": "world_of_hyatt", "nome": "World of Hyatt", "site": "https://www.hyatt.com" }
+  ]
+}
