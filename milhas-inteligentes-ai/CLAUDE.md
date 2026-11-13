@@ -68,6 +68,12 @@ tests/                unit/, integration/, e2e/smoke.mjs
 
 ## Segurança
 
+- **Uso pessoal:** o cadastro só abre enquanto `users` está vazia (`src/server/auth/signup.ts`),
+  com `pg_advisory_xact_lock` para evitar duas "primeiras contas". `ALLOW_SIGNUP=true` reabre
+  (o `.env.local` de desenvolvimento usa `true` por causa do usuário demo e do e2e).
+- **Hospedagem:** Vercel + Neon (`DEPLOY.md`). `vercel.json` roda `pnpm db:migrate` antes do
+  build; `scripts/migrate.ts` prefere `DATABASE_URL_UNPOOLED`. Use `DATABASE_POOL_MAX=3`.
+
 - Senhas: bcrypt (custo 12). Login com mensagem genérica, hash fictício contra
   enumeração por tempo e rate limit em memória (5 tentativas / 15 min por IP+e-mail).
 - Sessão: token aleatório de 32 bytes no cookie `mi_session` (httpOnly, sameSite=lax,

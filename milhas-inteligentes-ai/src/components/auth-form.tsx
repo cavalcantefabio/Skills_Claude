@@ -8,9 +8,11 @@ import type { ActionState } from "@/server/services/errors";
 type Props = {
   mode: "login" | "cadastro";
   action: (s: ActionState, f: FormData) => Promise<ActionState>;
+  /** Mostra o link "Criar conta" na tela de login (só quando o cadastro está aberto). */
+  showSignupLink?: boolean;
 };
 
-export function AuthForm({ mode, action }: Props) {
+export function AuthForm({ mode, action, showSignupLink = true }: Props) {
   const { state, onSubmit, pending } = useActionForm(action);
   const fe = state?.fieldErrors ?? {};
   const isSignup = mode === "cadastro";
@@ -49,12 +51,14 @@ export function AuthForm({ mode, action }: Props) {
       <Button type="submit" disabled={pending} className="mt-1">
         {pending ? "Aguarde…" : isSignup ? "Criar conta" : "Entrar"}
       </Button>
+      {(isSignup || showSignupLink) && (
       <p className="text-center text-sm text-ink-2">
         {isSignup ? "Já tem conta? " : "Ainda não tem conta? "}
         <Link href={isSignup ? "/login" : "/cadastro"} className="font-medium text-accent hover:underline">
           {isSignup ? "Entrar" : "Criar conta"}
         </Link>
       </p>
+      )}
     </form>
   );
 }

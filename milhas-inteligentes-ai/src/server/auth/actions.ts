@@ -9,6 +9,7 @@ import { createSession, destroySession } from "./session";
 import { hashPassword, verifyPassword } from "./password";
 import { rateLimit, resetRateLimit } from "./rate-limit";
 import type { ActionState } from "@/server/services/errors";
+import { signupOpen } from "./signup";
 
 const email = z.string().trim().toLowerCase().email("Informe um e-mail válido.").max(254);
 
@@ -37,6 +38,7 @@ export async function signup(_: ActionState, formData: FormData): Promise<Action
   const parsed = signupSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, fieldErrors: z.flattenError(parsed.error).fieldErrors };
   const { name, password } = parsed.data;
+  if (!(await signupOpen())) return { ok: false, message: "O cadastro de novas contas está fechado." };
   if (!rateLimit(await clientKey("signup", "*"), 10)) {
     return { ok: false, message: "Muitas tentativas. Aguarde alguns minutos." };
   }
@@ -49,6 +51,9 @@ export async function signup(_: ActionState, formData: FormData): Promise<Action
 
   const passwordHash = await hashPassword(password);
   const userId = await db.transaction(async (tx) => {
+    // Serializa cadastros para que duas "primeiras contas" simultâneas não passem juntas.
+    await tx.execute(sql`select pg_advisory_xact_lock(7316001)`);
+    if (!(await signupOpen(tx))) return null;
     const [u] = await tx
       .insert(schema.users)
       .values({ email: parsed.data.email, passwordHash })
@@ -56,6 +61,7 @@ export async function signup(_: ActionState, formData: FormData): Promise<Action
     await tx.insert(schema.profiles).values({ userId: u.id, name });
     return u.id;
   });
+  if (!userId) return { ok: false, message: "O cadastro de novas contas está fechado." };
   await createSession(userId);
   redirect("/");
 }

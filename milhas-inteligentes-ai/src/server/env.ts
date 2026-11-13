@@ -17,6 +17,16 @@ const schema = z.object({
   MILHAS_ANTHROPIC_BASE_URL: z.string().url().default("https://api.anthropic.com"),
   /** Mensagens por usuário por dia enviadas ao agente (controle de custo). */
   AGENT_DAILY_MESSAGE_LIMIT: z.coerce.number().int().positive().default(60),
+  /**
+   * Cadastro de novas contas. Por padrão só é permitido enquanto não existe nenhuma conta
+   * (app de uso pessoal: a primeira conta fecha o cadastro). "true" mantém o cadastro aberto.
+   */
+  ALLOW_SIGNUP: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
+  /** Conexões simultâneas por instância. Em hospedagem serverless (Vercel), use poucas. */
+  DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(50).default(10),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
 

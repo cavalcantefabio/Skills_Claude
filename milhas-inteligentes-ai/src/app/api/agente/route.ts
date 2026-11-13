@@ -12,6 +12,9 @@ import {
   type AgentEvent,
 } from "@/server/agent/run";
 
+/** Um turno do agente pode levar dezenas de segundos (várias chamadas à API). */
+export const maxDuration = 300;
+
 const bodySchema = z.object({
   conversationId: z.string().uuid().nullable().optional(),
   message: z.string().trim().min(1, "Mensagem vazia.").max(4000, "Mensagem muito longa (máx. 4.000 caracteres)."),

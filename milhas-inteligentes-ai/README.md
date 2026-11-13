@@ -60,6 +60,8 @@ pnpm dev          # http://localhost:3000
 | `DATABASE_URL` | Conexão PostgreSQL do app |
 | `TEST_DATABASE_URL` | Banco dos testes de integração. **É apagado e recriado** a cada `pnpm test`; o nome precisa terminar em `_test` |
 | `MILHAS_ANTHROPIC_API_KEY` | Chave da API do Claude para o Agente Inteligente. Opcional: sem ela o agente fica desativado. `ANTHROPIC_API_KEY` também é aceita, mas em sessões do Claude Code esse nome é reservado pela plataforma |
+| `ALLOW_SIGNUP` | Padrão `false`: o cadastro só abre enquanto não existe nenhuma conta (uso pessoal). `true` mantém aberto (desenvolvimento e testes) |
+| `DATABASE_POOL_MAX` | Conexões com o banco por instância (padrão 10; use 3 na Vercel) |
 | `AGENT_DAILY_MESSAGE_LIMIT` | Mensagens por usuário por dia ao agente (padrão 60) |
 | `APP_ENCRYPTION_KEY` | 32 bytes em base64 para AES-256-GCM (limite de crédito). Trocar a chave torna ilegíveis os limites já salvos |
 
@@ -89,6 +91,10 @@ pnpm typecheck && pnpm lint && pnpm build
 - Senhas de acesso com bcrypt, sessões com token hasheado no banco e cookie httpOnly.
 - Limite de crédito cifrado (AES-256-GCM).
 - Detalhes em [CLAUDE.md](CLAUDE.md#segurança).
+
+## Publicar para uso pessoal
+
+Passo a passo em [DEPLOY.md](DEPLOY.md) (Vercel + Neon, só pelo navegador).
 
 ## Documentação
 

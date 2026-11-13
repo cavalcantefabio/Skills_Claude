@@ -2,6 +2,14 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.3.0] - 2026-11-13
+
+### Adicionado
+- Publicação para uso pessoal na Vercel + Neon, com guia em `DEPLOY.md` e migrações automáticas
+  antes de cada build (`vercel.json`).
+- Cadastro fechado automaticamente depois da primeira conta (`ALLOW_SIGNUP=true` reabre).
+- `DATABASE_POOL_MAX` para limitar conexões em hospedagem serverless.
+
 ## [0.2.1] - 2026-11-13
 
 ### Corrigido

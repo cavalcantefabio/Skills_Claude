@@ -7,7 +7,7 @@ import * as schema from "./schema";
 const globalForDb = globalThis as unknown as { pgPool?: Pool };
 
 // Reaproveita o pool entre recargas do dev server.
-const pool = globalForDb.pgPool ?? new Pool({ connectionString: env.DATABASE_URL, max: 10 });
+const pool = globalForDb.pgPool ?? new Pool({ connectionString: env.DATABASE_URL, max: env.DATABASE_POOL_MAX, idleTimeoutMillis: 10_000 });
 if (env.NODE_ENV !== "production") globalForDb.pgPool = pool;
 
 export const db = drizzle(pool, { schema, casing: "snake_case" });
