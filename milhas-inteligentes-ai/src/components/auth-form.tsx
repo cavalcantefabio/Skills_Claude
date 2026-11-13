@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionForm } from "@/components/forms/use-action-form";
 import { Button, Field, FormMessage, Input } from "@/components/ui";
 import type { ActionState } from "@/server/services/errors";
 
@@ -11,11 +11,11 @@ type Props = {
 };
 
 export function AuthForm({ mode, action }: Props) {
-  const [state, formAction, pending] = useActionState(action, null);
+  const { state, onSubmit, pending } = useActionForm(action);
   const fe = state?.fieldErrors ?? {};
   const isSignup = mode === "cadastro";
   return (
-    <form action={formAction} className="flex flex-col gap-4" noValidate>
+    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
       <div className="mb-2">
         <h1 className="text-2xl font-semibold tracking-tight">{isSignup ? "Criar conta" : "Entrar"}</h1>
         <p className="mt-1 text-sm text-ink-2">
