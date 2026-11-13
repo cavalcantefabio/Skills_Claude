@@ -367,3 +367,73 @@ export const cardsRelations = relations(cards, ({ one }) => ({
 export const tripsRelations = relations(trips, ({ one }) => ({
   program: one(programs, { fields: [trips.programId], references: [programs.id] }),
 }));
+
+/* ------------------------------------------------------------------ */
+/* Agente Inteligente (Etapa 2)                                        */
+/* ------------------------------------------------------------------ */
+
+export const agentRole = pgEnum("agent_role", ["user", "assistant", "system"]);
+export const agentActionKind = pgEnum("agent_action_kind", ["lancamento", "transferencia", "viagem"]);
+export const agentActionStatus = pgEnum("agent_action_status", ["pendente", "confirmada", "recusada", "falhou"]);
+
+export const agentConversations = pgTable(
+  "agent_conversations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    ...timestamps,
+  },
+  (t) => [index("agent_conv_user_idx").on(t.userId, t.updatedAt)],
+);
+
+/**
+ * Histórico exatamente como enviado/recebido da API (blocos de conteúdo em jsonb),
+ * só por acréscimo: nunca editamos mensagens antigas (requisito do "preserved thinking").
+ */
+export const agentMessages = pgTable(
+  "agent_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => agentConversations.id, { onDelete: "cascade" }),
+    seq: integer("seq").notNull(),
+    role: agentRole("role").notNull(),
+    content: jsonb("content").notNull(),
+    /** Uso de tokens da resposta (só mensagens do assistente). */
+    usage: jsonb("usage"),
+    stopReason: text("stop_reason"),
+    /** Aviso exibido na interface após esta mensagem (erro, recusa). Nunca é enviado à API. */
+    notice: jsonb("notice"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("agent_msg_conv_seq_idx").on(t.conversationId, t.seq)],
+);
+
+/** Ações que o agente propõe. Só são executadas quando o usuário confirma na interface. */
+export const agentActions = pgTable(
+  "agent_actions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => agentConversations.id, { onDelete: "cascade" }),
+    toolUseId: text("tool_use_id").notNull(),
+    kind: agentActionKind("kind").notNull(),
+    summary: text("summary").notNull(),
+    payload: jsonb("payload").notNull(),
+    status: agentActionStatus("status").notNull().default("pendente"),
+    resultMessage: text("result_message"),
+    /** Se a decisão já foi informada ao agente em um turno seguinte. */
+    reportedToAgent: boolean("reported_to_agent").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+  },
+  (t) => [index("agent_actions_conv_idx").on(t.conversationId), index("agent_actions_user_idx").on(t.userId, t.status)],
+);

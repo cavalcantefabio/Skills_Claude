@@ -11,6 +11,9 @@ export function proxy(request: NextRequest) {
   const hasSession = request.cookies.has("mi_session");
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
+  if (!hasSession && pathname.startsWith("/api/")) {
+    return NextResponse.json({ error: "Sessão expirada. Entre novamente." }, { status: 401 });
+  }
   if (!hasSession && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

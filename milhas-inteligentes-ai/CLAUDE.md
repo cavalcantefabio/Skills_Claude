@@ -7,8 +7,8 @@ Guia para agentes (Claude Code) que trabalham neste projeto. Leia antes de mudar
 ## O que é
 
 Plataforma web para gerenciar pontos, milhas, cartões de crédito e viagens.
-**Etapa atual: 1 (base funcional).** A Etapa 2 (agente de IA, radar, recomendações)
-só começa com aprovação explícita do dono do projeto.
+**Etapa atual: 2 (Agente Inteligente), entrega 1 concluída.** Etapa 1 aprovada.
+Radar, recomendações e evolução contínua são etapas seguintes e dependem de aprovação.
 
 ## Stack e decisões
 
@@ -107,12 +107,34 @@ pnpm typecheck && pnpm lint && pnpm build
 - Server actions retornam `ActionState` (`{ ok, message, fieldErrors }`); erros de regra
   são `DomainError` (mensagem segura para o usuário).
 
-## Preparação para IA (Etapa 2)
+## Agente Inteligente (Etapa 2)
 
-- `src/lib/calculators` são funções puras com entrada validada por zod e saída
-  `{ metrics, verdict, explanation, raw }`: prontas para virar ferramentas do agente.
-- `src/server/services/*` concentram leitura e escrita com checagem de dono: o agente
-  deve chamar esses serviços, nunca o banco direto.
-- `trips.ai_context` (jsonb) reservado para metadados do agente.
+Arquivos em `src/server/agent/`:
+- `client.ts`: modelo `claude-opus-5-5`, SDK `@anthropic-ai/sdk`, chave em `ANTHROPIC_API_KEY`
+  (sem ela, a página explica como ativar e o resto do app funciona).
+- `prompt.ts`: prompt de sistema **estável** (fica em cache). Dados que mudam (data de
+  hoje, propostas decididas) vão numa mensagem `role: "system"` após cada mensagem do usuário.
+- `tools.ts`: 7 ferramentas de leitura (`consultar_*`, `calcular`) e 3 de proposta
+  (`propor_lancamento`, `propor_transferencia`, `propor_viagem`). Entradas validadas com
+  zod (a API não valida com `eager_input_streaming`). Ordem fixa da lista (cache).
+- `run.ts`: loop manual com streaming. Histórico em `agent_messages` **só por acréscimo**
+  (blocos exatamente como a API devolveu, inclusive `thinking` e `fallback`): nunca edite
+  nem apague mensagens antigas. Todos os `tool_result` de um turno vão numa só mensagem.
+  Trata `refusal`, `pause_turn`, `max_tokens` (responde os `tool_use` com erro) e limite de
+  10 iterações. Avisos para a interface ficam em `agent_messages.notice` (nunca vão à API).
+- `decide.ts`: confirma/recusa propostas. Revalida o payload e executa pelos mesmos
+  serviços (`recordTransaction`, `transferPoints(input, tx)`), numa transação.
+- Parâmetros da API: `thinking: adaptive`, `output_config.effort: "medium"`, cache
+  automático no topo, fallback no servidor (`server-side-fallback-2026-07-01` +
+  `fallbacks: "default"`).
+- Rota `POST /api/agente` (SSE): checa Origin (CSRF), sessão, limite diário
+  (`AGENT_DAILY_MESSAGE_LIMIT`). **Não ligue a chamada à API ao `request.signal`**: no
+  Next ele dispara ao devolver a Response; o cancelamento usa o `cancel()` do stream.
+
+Regras do agente: não acessa internet nem dados de mercado; nunca grava sem confirmação;
+não recebe limite de crédito; mensagens de ferramenta em português.
+
+Calculadoras (`src/lib/calculators`) e serviços (`src/server/services/*`) são a base das
+ferramentas; o agente nunca acessa o banco por fora deles. `trips.ai_context` segue reservado.
 - Skills instaladas no repositório e relevantes: `award-travel`, `flight-search`,
   `milhas-e-pontos`, `comparar-voos` (ver `.claude/skills/`). Ainda não usadas em runtime.

@@ -1,6 +1,6 @@
 # Roadmap: Milhas Inteligentes AI
 
-## Etapa 1: Base funcional ✅ (aguardando aprovação)
+## Etapa 1: Base funcional ✅ (aprovada)
 
 - [x] Estrutura Next.js + PostgreSQL + Drizzle com migrações
 - [x] Autenticação e autorização por usuário
@@ -25,12 +25,18 @@
 - Testes e2e rodando em CI (o script existe; falta o pipeline).
 - Atualização de dependências marcadas como obsoletas pelo scaffold (eslint 9).
 
-## Etapa 2: Agente de inteligência artificial 🚧
+## Etapa 2: Agente de inteligência artificial 🟡 (entrega 1 concluída)
 
-- Agente conversacional com acesso, pelos serviços do servidor, a saldos, cartões e viagens.
-- Calculadoras expostas como ferramentas do agente (já são funções puras).
-- Toda ação que mova pontos ou dinheiro exige confirmação explícita.
-- Avaliar o serviço Python (FastAPI) apenas se as bibliotecas necessárias exigirem.
+- [x] Agente conversacional com streaming e conversas salvas
+- [x] Ferramentas de leitura: programas, vencimentos, movimentações, cartões, viagens, alertas
+- [x] Calculadoras como ferramenta
+- [x] Propostas de lançamento, transferência e viagem com confirmação na tela
+- [x] Limite diário de mensagens, proteção CSRF, isolamento por usuário
+- [ ] Teste com a API real (falta configurar `ANTHROPIC_API_KEY` no ambiente)
+- [ ] Avaliação de qualidade das respostas (conjunto de perguntas de referência)
+- [ ] Mostrar custo em tokens por conversa
+- [ ] Botão "perguntar ao agente" nas páginas (ex.: num alerta ou numa viagem)
+- FastAPI segue desnecessário.
 
 ## Etapa 3: Radar automatizado de oportunidades 🚧
 

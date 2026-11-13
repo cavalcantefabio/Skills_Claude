@@ -15,6 +15,20 @@
       "when": 1794584314833,
       "tag": "0001_catalogo_programas",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794600510157,
+      "tag": "0002_agente",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794601257465,
+      "tag": "0003_agente_aviso",
+      "breakpoints": true
     }
   ]
 }

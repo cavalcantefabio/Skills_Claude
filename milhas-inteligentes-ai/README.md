@@ -4,8 +4,8 @@ Aplicativo web para gerenciar pontos, milhas, cartões de crédito e viagens: sa
 programa e por validade, histórico de movimentações, comparação de cartões e
 calculadoras de milheiro, com dashboard e modo claro/escuro.
 
-> **Status:** Etapa 1 (base funcional) concluída. Agente de IA, radar de oportunidades e
-> recomendações estão marcados como **Em desenvolvimento** na interface. Ver [ROADMAP.md](ROADMAP.md).
+> **Status:** Etapa 1 concluída e aprovada. Etapa 2 (Agente Inteligente), entrega 1
+> concluída. Radar de oportunidades segue **Em desenvolvimento**. Ver [ROADMAP.md](ROADMAP.md).
 
 ## Funcionalidades
 
@@ -20,7 +20,7 @@ calculadoras de milheiro, com dashboard e modo claro/escuro.
 | Alertas | 🟡 parcial | Vencimentos, pontos vencidos, clubes deficitários e viagens sem saldo. Notificações em desenvolvimento |
 | Configurações | ✅ | Perfil, cotação do dólar, janela de alertas, tema, troca de senha e saída de todos os dispositivos |
 | Radar de Oportunidades | 🚧 | Em desenvolvimento |
-| Agente Inteligente | 🚧 | Em desenvolvimento |
+| Agente Inteligente | ✅ | Chat com IA que consulta seus dados, faz as contas e propõe lançamentos, transferências e viagens. Nada é gravado sem sua confirmação. Requer `ANTHROPIC_API_KEY` |
 
 ## Requisitos
 
@@ -59,6 +59,8 @@ pnpm dev          # http://localhost:3000
 |---|---|
 | `DATABASE_URL` | Conexão PostgreSQL do app |
 | `TEST_DATABASE_URL` | Banco dos testes de integração. **É apagado e recriado** a cada `pnpm test`; o nome precisa terminar em `_test` |
+| `ANTHROPIC_API_KEY` | Chave da API do Claude para o Agente Inteligente. Opcional: sem ela o agente fica desativado |
+| `AGENT_DAILY_MESSAGE_LIMIT` | Mensagens por usuário por dia ao agente (padrão 60) |
 | `APP_ENCRYPTION_KEY` | 32 bytes em base64 para AES-256-GCM (limite de crédito). Trocar a chave torna ilegíveis os limites já salvos |
 
 ## Testes

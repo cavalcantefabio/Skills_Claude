@@ -166,12 +166,13 @@ export function transferReceived(points: number, ratio: number, bonusPct: number
   return Math.floor(points * ratio * (1 + bonusPct / 100));
 }
 
-export async function transferPoints(input: TransferInput) {
+/** Registra uma transferência; usa a transação recebida ou abre uma nova. */
+export async function transferPoints(input: TransferInput, outer?: Tx) {
   if (input.fromAccountId === input.toAccountId) throw new DomainError("Escolha programas diferentes.");
   const received = transferReceived(input.points, input.ratio, input.bonusPct);
   if (received <= 0) throw new DomainError("A transferência resultaria em zero pontos.");
   const group = randomUUID();
-  return db.transaction(async (tx) => {
+  const run = async (tx: Tx) => {
     // Trava as duas contas em ordem determinística para evitar deadlock.
     const [a, b] = [input.fromAccountId, input.toAccountId].sort();
     await lockAccount(tx, input.userId, a);
@@ -197,5 +198,6 @@ export async function transferPoints(input: TransferInput) {
       transferGroupId: group,
     });
     return { received };
-  });
+  };
+  return outer ? run(outer) : db.transaction(run);
 }

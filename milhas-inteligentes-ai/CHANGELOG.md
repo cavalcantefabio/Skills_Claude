@@ -2,6 +2,25 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.2.0] - 2026-11-13 (Etapa 2, entrega 1)
+
+### Adicionado
+- Agente Inteligente (Claude Opus 5.5 via `@anthropic-ai/sdk`) com respostas em streaming,
+  conversas salvas e lista de conversas.
+- 7 ferramentas de leitura e 3 de proposta; propostas viram cartões "Confirmar/Recusar"
+  e só gravam após confirmação, revalidadas e executadas pelos serviços existentes.
+- Tabelas `agent_conversations`, `agent_messages` e `agent_actions` (migrações 0002 e 0003).
+- Rota `POST /api/agente` com SSE, checagem de origem e limite diário por usuário.
+- Variáveis `ANTHROPIC_API_KEY` e `AGENT_DAILY_MESSAGE_LIMIT`.
+
+### Alterado
+- `transferPoints` aceita uma transação externa.
+- Rotas `/api/*` sem sessão respondem 401 em JSON (antes redirecionavam).
+
+### Testes
+- 14 testes novos (ferramentas, propostas, confirmação e o loop com cliente simulado da API):
+  51 no total.
+
 ## [0.1.0] - 2026-11-13 (Etapa 1)
 
 ### Entrega 1: Estrutura, banco, autenticação e dashboard

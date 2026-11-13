@@ -22,7 +22,7 @@ export const NAV: NavItem[] = [
   { href: "/radar", label: "Radar de Oportunidades", icon: Radar, status: "dev" },
   { href: "/calculadoras", label: "Calculadoras", icon: Calculator },
   { href: "/viagens", label: "Planejador de Viagens", icon: Map, status: "parcial" },
-  { href: "/agente", label: "Agente Inteligente", icon: Bot, status: "dev" },
+  { href: "/agente", label: "Agente Inteligente", icon: Bot },
   { href: "/alertas", label: "Alertas", icon: Bell, status: "parcial" },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
