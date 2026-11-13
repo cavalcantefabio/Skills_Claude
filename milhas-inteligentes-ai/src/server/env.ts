@@ -6,8 +6,15 @@ const schema = z.object({
   APP_ENCRYPTION_KEY: z
     .string()
     .refine((v) => Buffer.from(v, "base64").length === 32, "APP_ENCRYPTION_KEY deve ter 32 bytes em base64"),
-  /** Chave da API do Claude. Sem ela, o Agente Inteligente fica desativado (o resto do app funciona). */
+  /**
+   * Chave da API do Claude. Sem ela, o Agente Inteligente fica desativado (o resto do app funciona).
+   * MILHAS_ANTHROPIC_API_KEY tem prioridade: em sessões do Claude Code o nome ANTHROPIC_API_KEY é
+   * reservado pela plataforma e não chega ao app.
+   */
+  MILHAS_ANTHROPIC_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  /** Endereço da API. Fixo por padrão: não herdamos ANTHROPIC_BASE_URL de ferramentas do ambiente. */
+  MILHAS_ANTHROPIC_BASE_URL: z.string().url().default("https://api.anthropic.com"),
   /** Mensagens por usuário por dia enviadas ao agente (controle de custo). */
   AGENT_DAILY_MESSAGE_LIMIT: z.coerce.number().int().positive().default(60),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),

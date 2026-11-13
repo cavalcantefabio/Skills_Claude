@@ -110,7 +110,7 @@ pnpm typecheck && pnpm lint && pnpm build
 ## Agente Inteligente (Etapa 2)
 
 Arquivos em `src/server/agent/`:
-- `client.ts`: modelo `claude-opus-5-5`, SDK `@anthropic-ai/sdk`, chave em `ANTHROPIC_API_KEY`
+- `client.ts`: modelo `claude-opus-5-5`, SDK `@anthropic-ai/sdk`, chave em `MILHAS_ANTHROPIC_API_KEY` (ou `ANTHROPIC_API_KEY` fora do Claude Code); `baseURL` fixo, nunca herdado de `ANTHROPIC_BASE_URL`
   (sem ela, a página explica como ativar e o resto do app funciona).
 - `prompt.ts`: prompt de sistema **estável** (fica em cache). Dados que mudam (data de
   hoje, propostas decididas) vão numa mensagem `role: "system"` após cada mensagem do usuário.

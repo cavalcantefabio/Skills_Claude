@@ -32,7 +32,7 @@
 - [x] Calculadoras como ferramenta
 - [x] Propostas de lançamento, transferência e viagem com confirmação na tela
 - [x] Limite diário de mensagens, proteção CSRF, isolamento por usuário
-- [ ] Teste com a API real (falta configurar `ANTHROPIC_API_KEY` no ambiente)
+- [ ] Teste com a API real (falta configurar `MILHAS_ANTHROPIC_API_KEY` no ambiente)
 - [ ] Avaliação de qualidade das respostas (conjunto de perguntas de referência)
 - [ ] Mostrar custo em tokens por conversa
 - [ ] Botão "perguntar ao agente" nas páginas (ex.: num alerta ou numa viagem)

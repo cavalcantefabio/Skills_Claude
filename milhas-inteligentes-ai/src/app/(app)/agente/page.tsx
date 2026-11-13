@@ -30,7 +30,7 @@ export default async function AgentPage({ searchParams }: PageProps<"/agente">) 
             <div className="text-sm text-ink-2">
               <h2 className="text-[15px] font-semibold text-ink">Agente não configurado</h2>
               <p className="mt-1">
-                O agente usa a API do Claude. Para ativá-lo, defina a variável de ambiente <code className="rounded bg-surface-2 px-1">ANTHROPIC_API_KEY</code> no
+                O agente usa a API do Claude. Para ativá-lo, defina a variável de ambiente <code className="rounded bg-surface-2 px-1">MILHAS_ANTHROPIC_API_KEY</code> no
                 servidor e reinicie o app. A chave fica só no servidor e nunca é enviada ao navegador.
               </p>
             </div>

@@ -239,7 +239,7 @@ export async function runAgentTurn({ client, userId, alertDays, conversationId, 
 /** Mensagem de erro segura para a interface, a partir dos erros tipados do SDK. */
 export function describeAgentError(err: unknown) {
   if (err instanceof Anthropic.APIUserAbortError) return null;
-  if (err instanceof Anthropic.AuthenticationError) return "A chave da API do Claude é inválida. Verifique ANTHROPIC_API_KEY.";
+  if (err instanceof Anthropic.AuthenticationError) return "A chave da API do Claude é inválida. Verifique MILHAS_ANTHROPIC_API_KEY.";
   if (err instanceof Anthropic.RateLimitError) return "Limite de uso da API atingido. Tente de novo em instantes.";
   if (err instanceof Anthropic.BadRequestError) return "A API recusou a requisição. Tente iniciar uma nova conversa.";
   if (err instanceof Anthropic.APIConnectionError) return "Sem conexão com a API do Claude. Tente novamente.";

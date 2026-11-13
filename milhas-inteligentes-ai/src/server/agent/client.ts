@@ -6,12 +6,17 @@ export const AGENT_MODEL = "claude-opus-5-5";
 /** Fallback do servidor: em caso de recusa por política, outro modelo continua a resposta. */
 export const FALLBACK_BETA = "server-side-fallback-2026-07-01";
 
-export const agentEnabled = () => Boolean(env.ANTHROPIC_API_KEY);
+const apiKey = () => env.MILHAS_ANTHROPIC_API_KEY ?? env.ANTHROPIC_API_KEY;
+
+export const agentEnabled = () => Boolean(apiKey());
 
 let client: Anthropic | null = null;
 export function getAnthropic() {
-  if (!env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY não configurada");
-  client ??= new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2 });
+  const key = apiKey();
+  if (!key) throw new Error("Chave da API do Claude não configurada");
+  // baseURL explícito: o SDK leria ANTHROPIC_BASE_URL do ambiente, que em sessões do
+  // Claude Code aponta para um endereço interno da própria sessão.
+  client ??= new Anthropic({ apiKey: key, baseURL: env.MILHAS_ANTHROPIC_BASE_URL, maxRetries: 2 });
   return client;
 }
 

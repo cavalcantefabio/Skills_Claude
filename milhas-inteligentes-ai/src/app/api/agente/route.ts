@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
   const user = await getCurrentUser();
   if (!user) return json(401, "Sessão expirada. Entre novamente.");
-  if (!agentEnabled()) return json(503, "O agente não está configurado (falta ANTHROPIC_API_KEY).");
+  if (!agentEnabled()) return json(503, "O agente não está configurado (falta MILHAS_ANTHROPIC_API_KEY).");
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return json(400, parsed.error.issues[0]?.message ?? "Pedido inválido.");
