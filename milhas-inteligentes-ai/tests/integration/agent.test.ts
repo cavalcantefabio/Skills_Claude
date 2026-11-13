@@ -255,7 +255,7 @@ describe("loop do agente (cliente falso da API)", () => {
     ]);
     const events: { type: string; action?: { id: string } }[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const base = { client: client as any, userId, alertDays: 90, conversationId: conv.id, emit: (e: (typeof events)[number]) => events.push(e) };
+    const base = { client: client as any, userId, alertDays: 90, usdRateBrl: 5.4, conversationId: conv.id, emit: (e: (typeof events)[number]) => events.push(e) };
     await run.runAgentTurn({ ...base, text: "Lance 700 de bônus na Smiles" });
     const action = events.find((e) => e.type === "action")!.action!;
     await decide.decideAction(userId, action.id, "confirmar");
@@ -264,6 +264,7 @@ describe("loop do agente (cliente falso da API)", () => {
     const lastSystem = msgs[msgs.length - 1];
     expect(lastSystem.role).toBe("system");
     expect(lastSystem.content[0].text).toMatch(/confirmada/);
+    expect(lastSystem.content[0].text).toMatch(/dólar.*R\$ 5,40/);
   });
 
   it("recusa (refusal) encerra o turno com aviso", async () => {

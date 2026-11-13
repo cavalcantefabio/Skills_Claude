@@ -2,6 +2,18 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.2.1] - 2026-11-13
+
+### Corrigido
+- A chave do agente é lida de `MILHAS_ANTHROPIC_API_KEY` (em sessões do Claude Code,
+  `ANTHROPIC_API_KEY` é reservado) e o endereço da API é fixo, sem herdar `ANTHROPIC_BASE_URL`.
+- O agente recebe a cotação do dólar cadastrada no perfil; antes, em contas de cartões,
+  ele supunha uma cotação.
+
+### Verificado
+- Teste com a API real em 5 cenários: respostas corretas conferidas contra o banco,
+  proposta só gravada após confirmação e ~US$ 0,05 por mensagem com cache do prompt ativo.
+
 ## [0.2.0] - 2026-11-13 (Etapa 2, entrega 1)
 
 ### Adicionado

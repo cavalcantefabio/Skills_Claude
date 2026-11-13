@@ -62,7 +62,7 @@ export async function loadHistory(conversationId: string): Promise<BetaMessagePa
  * Contexto do turno como mensagem de sistema no meio da conversa: não invalida o
  * cache do prompt de sistema e é o canal do operador (não do usuário).
  */
-async function turnContext(userId: string, conversationId: string) {
+async function turnContext(userId: string, conversationId: string, usdRateBrl?: number) {
   const decided = await db
     .select()
     .from(schema.agentActions)
@@ -81,6 +81,11 @@ async function turnContext(userId: string, conversationId: string) {
       .where(sql`${schema.agentActions.id} in ${decided.map((d) => d.id)}`);
   }
   const lines = [`Hoje é ${formatDate(todayISO())} (${todayISO()}, horário de Brasília).`];
+  if (usdRateBrl) {
+    lines.push(
+      `Cotação de referência do dólar cadastrada pela pessoa em Configurações: R$ ${usdRateBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}. Use-a nas contas com dólar, a menos que a pessoa informe outra.`,
+    );
+  }
   for (const d of decided) {
     lines.push(`Proposta "${d.summary}": ${d.status}${d.resultMessage ? ` (${d.resultMessage})` : ""}.`);
   }
@@ -136,19 +141,21 @@ export type RunTurnInput = {
   client: AgentClient;
   userId: string;
   alertDays: number;
+  /** Cotação de referência do dólar do perfil (usada nas contas de cartões). */
+  usdRateBrl?: number;
   conversationId: string;
   text: string;
   emit: (e: AgentEvent) => void;
   signal?: AbortSignal;
 };
 
-export async function runAgentTurn({ client, userId, alertDays, conversationId, text, emit: rawEmit, signal }: RunTurnInput) {
+export async function runAgentTurn({ client, userId, alertDays, usdRateBrl, conversationId, text, emit: rawEmit, signal }: RunTurnInput) {
   const emit = (e: AgentEvent) => {
     rawEmit(e);
     if (e.type === "notice") void saveNotice(conversationId, { tone: e.tone, message: e.message });
   };
   await append(conversationId, "user", [{ type: "text", text }]);
-  await append(conversationId, "system", [{ type: "text", text: await turnContext(userId, conversationId) }]);
+  await append(conversationId, "system", [{ type: "text", text: await turnContext(userId, conversationId, usdRateBrl) }]);
 
   let jsonRetries = 0;
   for (let i = 0; i < MAX_ITERATIONS; i++) {

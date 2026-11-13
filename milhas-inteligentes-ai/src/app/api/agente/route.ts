@@ -65,6 +65,7 @@ export async function POST(request: Request) {
           client: getAnthropic(),
           userId: user.id,
           alertDays: user.expiryAlertDays,
+          usdRateBrl: user.usdRateBrl,
           conversationId: conversationId!,
           text: parsed.data.message,
           emit,

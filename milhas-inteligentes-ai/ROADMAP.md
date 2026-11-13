@@ -32,7 +32,7 @@
 - [x] Calculadoras como ferramenta
 - [x] Propostas de lançamento, transferência e viagem com confirmação na tela
 - [x] Limite diário de mensagens, proteção CSRF, isolamento por usuário
-- [ ] Teste com a API real (falta configurar `MILHAS_ANTHROPIC_API_KEY` no ambiente)
+- [x] Teste com a API real: 5 cenários (vencimentos, cartões, dinheiro x milhas, proposta confirmada, pergunta sem dados de mercado); custo medido de ~US$ 0,05 por mensagem
 - [ ] Avaliação de qualidade das respostas (conjunto de perguntas de referência)
 - [ ] Mostrar custo em tokens por conversa
 - [ ] Botão "perguntar ao agente" nas páginas (ex.: num alerta ou numa viagem)
