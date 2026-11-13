@@ -5,6 +5,14 @@ aberto até você criar a sua conta**; depois disso ninguém mais consegue se ca
 Tudo é feito pelo navegador, sem instalar nada. Os planos gratuitos da Vercel e do Neon
 bastam para uma pessoa; o único custo é o do agente (cerca de US$ 0,05 por mensagem).
 
+## 0. Preparar o GitHub (uma vez)
+
+1. Abra o pull request do projeto no GitHub (aba **Pull requests** do repositório `Skills_Claude`)
+   e clique em **Merge pull request → Confirm merge**.
+2. Torne a `main` a branch padrão: no repositório, **Settings → General → Default branch**,
+   clique no ícone de troca (⇄), escolha **main** e confirme em **Update**.
+   A Vercel publica a branch padrão; sem este passo, ela usaria outra branch.
+
 ## 1. Criar a conta na Vercel
 
 1. Acesse **vercel.com** e clique em **Sign Up**.
