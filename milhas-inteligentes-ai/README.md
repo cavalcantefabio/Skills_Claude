@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Milhas Inteligentes AI
 
-## Getting Started
+Aplicativo web para gerenciar pontos, milhas, cartões de crédito e viagens: saldos por
+programa e por validade, histórico de movimentações, comparação de cartões e
+calculadoras de milheiro, com dashboard e modo claro/escuro.
 
-First, run the development server:
+> **Status:** Etapa 1 (base funcional) concluída. Agente de IA, radar de oportunidades e
+> recomendações estão marcados como **Em desenvolvimento** na interface. Ver [ROADMAP.md](ROADMAP.md).
+
+## Funcionalidades
+
+| Módulo | Situação | O que faz |
+|---|---|---|
+| Dashboard | ✅ | Valor estimado em R$, economia acumulada, contagens, saldo por programa, pontos vencendo, acumulado no mês e 5 gráficos (evolução, distribuição, movimentações, acúmulo por cartão, resgates), com filtros de período e programa |
+| Meus Cartões | ✅ | Cadastro, edição, exclusão e comparação de retorno anual |
+| Programas de Fidelidade | ✅ | Livelo, Esfera, Smiles, LATAM Pass, Azul e outros do catálogo, ou programa personalizado. Saldo, validade, clube, custo e histórico |
+| Minhas Milhas | ✅ | Acúmulos (com cartão), bônus, compras, resgates (com economia), expirações, ajustes e transferências com paridade e bônus |
+| Calculadoras | ✅ | Custo por milheiro, transferência bonificada, compra de pontos, dinheiro x milhas, retorno anual de cartão e clube de pontos. Cada uma explica o cálculo e permite salvar simulações |
+| Planejador de Viagens | 🟡 parcial | Cadastro de viagens e progresso do saldo. Busca automática em desenvolvimento |
+| Alertas | 🟡 parcial | Vencimentos, pontos vencidos, clubes deficitários e viagens sem saldo. Notificações em desenvolvimento |
+| Configurações | ✅ | Perfil, cotação do dólar, janela de alertas, tema, troca de senha e saída de todos os dispositivos |
+| Radar de Oportunidades | 🚧 | Em desenvolvimento |
+| Agente Inteligente | 🚧 | Em desenvolvimento |
+
+## Requisitos
+
+- Node.js 20.9+ (testado com 22) e pnpm 10
+- PostgreSQL 14+ (testado com 16)
+
+## Como rodar
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd milhas-inteligentes-ai
+pnpm install
+cp .env.example .env.local
+# edite .env.local: DATABASE_URL, TEST_DATABASE_URL e APP_ENCRYPTION_KEY
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"   # gera a chave
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Crie os bancos (exemplo com um usuário `milhas`):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+sudo -u postgres psql -c "CREATE ROLE milhas LOGIN PASSWORD 'troque-esta-senha' CREATEDB"
+sudo -u postgres createdb -O milhas milhas_inteligentes
+sudo -u postgres createdb -O milhas milhas_inteligentes_test
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Aplique as migrações e, se quiser, crie o usuário de demonstração:
 
-## Learn More
+```bash
+pnpm db:migrate
+pnpm db:seed      # demo@milhas.local / Demo12345678 (dados fictícios)
+pnpm dev          # http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Variáveis de ambiente
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Variável | Uso |
+|---|---|
+| `DATABASE_URL` | Conexão PostgreSQL do app |
+| `TEST_DATABASE_URL` | Banco dos testes de integração. **É apagado e recriado** a cada `pnpm test`; o nome precisa terminar em `_test` |
+| `APP_ENCRYPTION_KEY` | 32 bytes em base64 para AES-256-GCM (limite de crédito). Trocar a chave torna ilegíveis os limites já salvos |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testes
 
-## Deploy on Vercel
+```bash
+pnpm test                    # unitários + integração (vitest)
+pnpm dev & node tests/e2e/smoke.mjs   # ponta a ponta no navegador (Playwright)
+pnpm typecheck && pnpm lint && pnpm build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Script | Descrição |
+|---|---|
+| `pnpm dev` / `build` / `start` | Next.js |
+| `pnpm db:generate` | Gera migração a partir de `src/server/db/schema.ts` |
+| `pnpm db:migrate` | Aplica migrações pendentes |
+| `pnpm db:seed` | Recria o usuário de demonstração (bloqueado em produção) |
+| `pnpm db:studio` | Drizzle Studio |
+| `pnpm test` / `typecheck` / `lint` | Qualidade |
+
+## Segurança
+
+- Não pedimos nem armazenamos senhas de bancos, cartões ou programas de fidelidade, nem
+  número/CVV de cartões.
+- Senhas de acesso com bcrypt, sessões com token hasheado no banco e cookie httpOnly.
+- Limite de crédito cifrado (AES-256-GCM).
+- Detalhes em [CLAUDE.md](CLAUDE.md#segurança).
+
+## Documentação
+
+- [CLAUDE.md](CLAUDE.md): arquitetura, regras de domínio e convenções
+- [ROADMAP.md](ROADMAP.md): etapas e pendências
+- [CHANGELOG.md](CHANGELOG.md): histórico de versões

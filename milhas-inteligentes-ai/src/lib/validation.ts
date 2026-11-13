@@ -3,12 +3,17 @@ import { z } from "zod";
 /** Campos de formulário chegam como string; "" vira undefined. */
 const blankToUndef = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
 
-/** Aceita "1234.5" e "1.234,5" (pt-BR). */
+/**
+ * Aceita formatos pt-BR e internacionais: "1234.5", "1.234,5", "50.000" (= 50 mil),
+ * "2,5". Ponto seguido de grupos de 3 dígitos sem vírgula é separador de milhar.
+ */
 export function parseNumber(v: unknown): unknown {
   if (typeof v !== "string") return v;
-  const s = v.trim();
+  const s = v.trim().replace(/\s|R\$/g, "");
   if (s === "") return undefined;
-  const normalized = s.includes(",") ? s.replace(/\./g, "").replace(",", ".") : s;
+  let normalized = s;
+  if (s.includes(",")) normalized = s.replace(/\./g, "").replace(",", ".");
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) normalized = s.replace(/\./g, "");
   const n = Number(normalized);
   return Number.isFinite(n) ? n : v;
 }

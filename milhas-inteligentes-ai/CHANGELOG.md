@@ -1,0 +1,38 @@
+# Changelog
+
+Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
+
+## [0.1.0] - 2026-11-13 (Etapa 1)
+
+### Entrega 1: Estrutura, banco, autenticação e dashboard
+- App Next.js 16 + React 19 + TypeScript + Tailwind 4.
+- PostgreSQL com Drizzle: usuários, perfis, sessões, programas, contas de fidelidade,
+  saldos por lote, cartões, transações, simulações e viagens; `CHECK`s de integridade.
+- Migração `0001` com catálogo de 12 programas (Livelo, Esfera, Átomos, Inter Loop,
+  Smiles, LATAM Pass, Azul Fidelidade, TAP Miles&Go, Flying Blue, AAdvantage, Iberia, ALL Accor).
+- Serviço de lançamentos com consumo FIFO por validade e transferências atômicas.
+- Cadastro e login por e-mail/senha, sessões no banco, rate limit, cabeçalhos de segurança.
+- Layout com menu lateral (gaveta no celular), modo claro/escuro/sistema.
+- Dashboard: KPIs, saldo por programa, vencimentos, acumulado no mês e 5 gráficos com
+  visão em tabela, filtros de período e programa.
+- Script de dados de demonstração.
+
+### Entrega 2: Cartões, programas e movimentações
+- Cartões: CRUD, limite cifrado (AES-256-GCM) e comparação de retorno anual.
+- Programas: cadastro com saldo e validade, programa personalizado, clube, valor do
+  milheiro, lotes por validade e histórico.
+- Minhas Milhas: lançamentos de todos os tipos e transferências com paridade e bônus.
+- Formulários mantêm o que foi digitado quando há erro de validação.
+
+### Entrega 3: Calculadoras e módulos restantes
+- 6 calculadoras com validação, explicação passo a passo, veredito e simulações salvas
+  (recalculadas no servidor).
+- Planejador de viagens com progresso do saldo e valor obtido por milheiro.
+- Alertas de vencimento, pontos vencidos, clubes deficitários, viagens e cadastros incompletos.
+- Configurações: perfil, cotação do dólar, janela de alertas, tema, senha e sessões.
+- Radar e Agente marcados como "Em desenvolvimento".
+- Leitura de números em formato brasileiro (`50.000`, `1.234,56`).
+
+### Testes
+- 37 testes vitest (datas, séries, formatação, calculadoras e ledger contra Postgres).
+- Teste ponta a ponta com 28 verificações no navegador.

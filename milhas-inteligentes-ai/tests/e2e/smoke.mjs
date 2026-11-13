@@ -121,6 +121,56 @@ try {
   assert(await page.getByRole("columnheader", { name: "Mês" }).first().isVisible(), "gráfico alterna para visão em tabela");
   await snap("dashboard");
 
+  console.log("Calculadoras");
+  await page.goto(`${BASE}/calculadoras?c=custo_milheiro`);
+  await page.fill("#calc-valorPago", "1.750,00");
+  await page.fill("#calc-pontos", "100.000");
+  await page.getByText("R$ 17,50").first().waitFor();
+  assert(true, "custo por milheiro em formato brasileiro: R$ 17,50");
+  await page.fill("#calc-pontos", "-5");
+  await page.locator("#calc-pontos").blur();
+  await page.getByText(/mínimo|maior que zero/).first().waitFor();
+  assert(true, "entrada inválida mostra erro e esconde o resultado");
+  await page.fill("#calc-pontos", "100000");
+  await page.fill("#calc-title", "Compra teste");
+  await page.click("text=Salvar simulação");
+  await page.getByText("Simulação salva.").waitFor();
+  await page.getByText("Compra teste").waitFor();
+  assert(true, "simulação salva aparece na lista");
+  await page.click("text=Abrir");
+  await page.waitForURL(/sim=/);
+  assert((await page.inputValue("#calc-pontos")) === "100000", "simulação salva é reaberta com as entradas");
+  await snap("calculadora");
+
+  console.log("Viagens, alertas e configurações");
+  await page.goto(`${BASE}/viagens/nova`);
+  await page.fill("#title", "Teste Nordeste");
+  await page.fill("#origin", "gru");
+  await page.fill("#destination", "rec");
+  await page.fill("#departDate", "2027-01-10");
+  await page.fill("#returnDate", "2027-01-05");
+  await pick("#programId", "Smiles");
+  await page.fill("#milesNeeded", "20000");
+  await page.click("text=Salvar viagem");
+  await page.getByText("A volta deve ser depois da ida.").waitFor();
+  assert((await page.inputValue("#title")) === "Teste Nordeste", "erro de validação mantém o que foi digitado");
+  await page.fill("#returnDate", "2027-01-20");
+  await Promise.all([page.waitForURL(`${BASE}/viagens`), page.click("text=Salvar viagem")]);
+  const trips = (await page.textContent("main")).replace(/\u00a0/g, " ");
+  assert(trips.includes("GRU") && trips.includes("6.000 de 20.000"), "viagem mostra progresso com o saldo real");
+  await page.goto(`${BASE}/alertas`);
+  assert((await page.textContent("main")).includes("Defina o valor do milheiro") === false, "sem alerta indevido de milheiro (ambos definidos)");
+  await page.goto(`${BASE}/configuracoes`);
+  await page.fill("#usdRateBrl", "6");
+  await page.click("text=Salvar preferências");
+  await page.getByText("Preferências salvas.").waitFor();
+  await page.fill("#current", "errada");
+  await page.fill("#next", "NovaSenha12345");
+  await page.fill("#confirm", "NovaSenha12345");
+  await page.click("text=Alterar senha");
+  await page.getByText("Senha atual incorreta.").waitFor();
+  assert(true, "troca de senha exige a senha atual");
+
   console.log("Isolamento entre usuários");
   const cardUrl = await page.evaluate(async () => {
     const r = await fetch("/cartoes");
