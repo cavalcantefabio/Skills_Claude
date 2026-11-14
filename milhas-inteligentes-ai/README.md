@@ -94,7 +94,9 @@ pnpm typecheck && pnpm lint && pnpm build
 
 ## Publicar para uso pessoal
 
-Passo a passo em [DEPLOY.md](DEPLOY.md) (Vercel + Neon, só pelo navegador).
+Passo a passo, só pelo navegador:
+- [DEPLOY.md](DEPLOY.md): Vercel + Neon.
+- [RENDER.md](RENDER.md): Render + Neon (alternativa; no plano gratuito o app "dorme" após ~15 min sem uso).
 
 ## Documentação
 
