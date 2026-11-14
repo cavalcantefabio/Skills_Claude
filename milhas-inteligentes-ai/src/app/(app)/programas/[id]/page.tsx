@@ -8,6 +8,7 @@ import { listTransactions } from "@/server/services/transactions";
 import { deleteAccount, updateAccount } from "@/server/actions/accounts";
 import { deleteTx } from "@/server/actions/transactions";
 import { AskAgent } from "@/components/agent/ask-agent";
+import { WriteOffButton } from "@/components/forms/write-off-button";
 import { EditAccountForm } from "@/components/forms/account-form";
 import { DeleteButton } from "@/components/forms/submit";
 import { TxTable } from "@/components/tx-table";
@@ -55,7 +56,11 @@ export default async function AccountPage({ params }: PageProps<"/programas/[id]
         }
       />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatTile label="Saldo" value={`${formatPoints(account.balance)}`} sub={account.unit} />
+        <StatTile
+          label="Saldo disponível"
+          value={`${formatPoints(account.balance)}`}
+          sub={account.expiredNotWrittenOff > 0 ? `${account.unit} · sem ${formatPoints(account.expiredNotWrittenOff)} vencidos` : account.unit}
+        />
         <StatTile
           label="Valor estimado"
           value={account.estimatedValueBrl != null ? formatBRL(account.estimatedValueBrl) : "—"}
@@ -72,6 +77,23 @@ export default async function AccountPage({ params }: PageProps<"/programas/[id]
           sub={clubYear != null ? `${formatBRL(account.clubMonthlyCostBrl!)}/mês · ${formatBRL(clubYear)}/ano` : undefined}
         />
       </div>
+
+      {account.expiredNotWrittenOff > 0 && (
+        <Card className="mt-4 border-critical/30">
+          <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm">
+              <p className="font-medium text-ink">
+                {formatPoints(account.expiredNotWrittenOff)} {account.unit} já venceram e não entram no saldo disponível.
+              </p>
+              <p className="mt-0.5 text-ink-2">
+                Se o programa já baixou esses pontos, registre a expiração para o histórico ficar igual ao extrato. Se a validade foi cadastrada
+                errada, corrija com um lançamento de ajuste.
+              </p>
+            </div>
+            <WriteOffButton accountId={account.id} points={account.expiredNotWrittenOff} unit={account.unit} />
+          </div>
+        </Card>
+      )}
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_420px]">
         <Card>

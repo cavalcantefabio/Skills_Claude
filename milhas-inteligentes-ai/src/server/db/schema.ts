@@ -523,3 +523,19 @@ export const radarOpportunities = pgTable(
   },
   (t) => [index("radar_opp_run_idx").on(t.runId), index("radar_opp_user_idx").on(t.userId)],
 );
+
+/**
+ * Tentativas de login, para limitar força bruta por e-mail (não depende do IP, que pode ser
+ * forjado) e por IP. Registros com mais de 1 dia são apagados automaticamente.
+ */
+export const loginAttempts = pgTable(
+  "login_attempts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    ip: text("ip").notNull(),
+    success: boolean("success").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("login_attempts_email_idx").on(t.email, t.createdAt), index("login_attempts_ip_idx").on(t.ip, t.createdAt)],
+);

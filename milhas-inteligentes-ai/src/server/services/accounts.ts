@@ -10,6 +10,7 @@ export type AccountSummary = {
   programSlug: string;
   unit: string;
   kind: string;
+  /** Saldo disponível hoje (sem lotes vencidos). */
   balance: number;
   milheiroValueBrl: number | null;
   /** Valor estimado em R$ (null quando o usuário não informou o valor do milheiro). */
@@ -44,7 +45,8 @@ export async function listAccounts(userId: string, alertDays = 90): Promise<Acco
       clubMonthlyCostBrl: schema.loyaltyAccounts.clubMonthlyCostBrl,
       clubMonthlyPoints: schema.loyaltyAccounts.clubMonthlyPoints,
       notes: schema.loyaltyAccounts.notes,
-      balance: sql<number>`coalesce(sum(${b.remaining}), 0)::int`,
+      // Saldo disponível: só lotes dentro da validade (vencidos aparecem em expiredNotWrittenOff).
+      balance: sql<number>`coalesce(sum(${b.remaining}) filter (where ${b.expiresAt} is null or ${b.expiresAt} >= ${today}), 0)::int`,
       expiringSoon: sql<number>`coalesce(sum(${b.remaining}) filter (where ${b.expiresAt} >= ${today} and ${b.expiresAt} <= ${limit}), 0)::int`,
       expired: sql<number>`coalesce(sum(${b.remaining}) filter (where ${b.expiresAt} < ${today}), 0)::int`,
       nextExpiry: sql<string | null>`min(${b.expiresAt}) filter (where ${b.expiresAt} >= ${today} and ${b.remaining} > 0)`,

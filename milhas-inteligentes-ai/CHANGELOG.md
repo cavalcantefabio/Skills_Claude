@@ -2,6 +2,31 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.7.0] - 2026-11-15 (Ciclo de melhoria contínua 1)
+
+### Corrigido
+- **Pontos vencidos não entram mais no saldo.** O saldo mostrado (dashboard, programas, viagens,
+  agente e Radar) passa a ser o disponível; lotes com validade passada aparecem à parte.
+- **Débitos não consomem pontos vencidos.** Um resgate ou transferência só usa lotes válidos na data
+  do lançamento (a exceção é a própria expiração).
+- **Login protegido contra força bruta.** Limite por e-mail (10 falhas em 15 minutos, zerado por um
+  login bem-sucedido) e por IP (30), guardado no banco: sobrevive a reinícios e não pode ser
+  contornado forjando o IP. O IP passa a vir do proxy, não do primeiro valor de `X-Forwarded-For`.
+
+### Adicionado
+- Botão "Registrar expiração" na página do programa: baixa os lotes vencidos com lançamentos de
+  expiração datados do vencimento.
+- Limpeza automática de sessões expiradas e de tentativas de login com mais de 1 dia.
+- Tabela `login_attempts` (migração 0007).
+
+### Alterado
+- `package.json` alinhado à versão do CHANGELOG.
+- Ferramenta do agente: campo `saldo_disponivel` (antes `saldo`).
+
+### Testes
+- 10 testes de integração novos (vencimentos e limite de login), 78 no total.
+- Teste ponta a ponta com 5 verificações novas (33 no total).
+
 ## [0.6.0] - 2026-11-14 (Etapa 3, entrega 1)
 
 ### Adicionado

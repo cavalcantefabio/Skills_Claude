@@ -117,7 +117,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             <thead>
               <tr>
                 <th className={th}>Programa</th>
-                <th className={`${th} text-right`}>Saldo</th>
+                <th className={`${th} text-right`}>Saldo disponível</th>
                 <th className={`${th} text-right`}>Valor estimado</th>
                 <th className={`${th} text-right`}>Acumulado no mês</th>
                 <th className={`${th} text-right`}>Vencendo</th>

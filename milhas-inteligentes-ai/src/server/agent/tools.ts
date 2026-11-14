@@ -48,7 +48,7 @@ const consultarProgramas = def({
   name: "consultar_programas",
   label: "Consultou seus programas",
   description:
-    "Lista os programas de fidelidade da pessoa com saldo atual (na unidade de cada programa), valor do milheiro definido por ela, valor estimado em R$, clube assinado, pontos que vencem na janela de alerta e próxima validade. Use antes de responder qualquer pergunta sobre saldos.",
+    "Lista os programas de fidelidade da pessoa com saldo disponível (na unidade de cada programa, sem pontos já vencidos; os vencidos e ainda não baixados vêm em vencidos_nao_baixados), valor do milheiro definido por ela, valor estimado em R$, clube assinado, pontos que vencem na janela de alerta e próxima validade. Use antes de responder qualquer pergunta sobre saldos.",
   input: z.object({}),
   run: async (_, ctx) => {
     const accounts = await listAccounts(ctx.userId, ctx.alertDays);
@@ -59,7 +59,7 @@ const consultarProgramas = def({
         programa: a.programName,
         tipo: a.kind,
         unidade: a.unit,
-        saldo: a.balance,
+        saldo_disponivel: a.balance,
         valor_milheiro_brl: a.milheiroValueBrl,
         valor_estimado_brl: a.estimatedValueBrl == null ? null : Math.round(a.estimatedValueBrl * 100) / 100,
         clube: a.clubName,

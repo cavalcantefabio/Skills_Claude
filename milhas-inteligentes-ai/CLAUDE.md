@@ -60,10 +60,13 @@ tests/                unit/, integration/, e2e/smoke.mjs
    `recordTransaction` / `transferPoints` (`src/server/services/ledger.ts`); nunca insira
    em `transactions`/`balances` direto (exceto em testes).
 3. Sinal dos pontos por tipo é garantido também por `CHECK` no banco.
-4. Excluir movimentação: só créditos cujo lote está intacto. O resto é corrigido com `ajuste`.
-5. Toda consulta e mutação filtra por `userId` do `requireUser()`. Ids vindos do
+4. **Saldo disponível** = lotes sem validade ou com `expires_at >= hoje` (a validade inclui o dia).
+   Débitos só consomem lotes válidos na data do lançamento; só `expiracao` consome vencidos.
+   `writeOffExpired` baixa os vencidos com lançamentos datados do dia seguinte ao vencimento.
+5. Excluir movimentação: só créditos cujo lote está intacto. O resto é corrigido com `ajuste`.
+6. Toda consulta e mutação filtra por `userId` do `requireUser()`. Ids vindos do
    cliente são validados como uuid e checados quanto ao dono.
-6. Funcionalidades não implementadas usam `<InDevelopment>`: nunca simular dados ou
+7. Funcionalidades não implementadas usam `<InDevelopment>`: nunca simular dados ou
    respostas de IA como se fossem reais.
 
 ## Segurança
@@ -74,8 +77,9 @@ tests/                unit/, integration/, e2e/smoke.mjs
 - **Hospedagem:** Vercel + Neon (`DEPLOY.md`). `vercel.json` roda `pnpm db:migrate` antes do
   build; `scripts/migrate.ts` prefere `DATABASE_URL_UNPOOLED`. Use `DATABASE_POOL_MAX=3`.
 
-- Senhas: bcrypt (custo 12). Login com mensagem genérica, hash fictício contra
-  enumeração por tempo e rate limit em memória (5 tentativas / 15 min por IP+e-mail).
+- Senhas: bcrypt (custo 12). Login com mensagem genérica e hash fictício contra
+  enumeração por tempo. Limite em `login_attempts` (`src/server/auth/attempts.ts`): 10 falhas por
+  e-mail e 30 por IP em 15 min; o IP vem de `CF-Connecting-IP` ou do último `X-Forwarded-For`.
 - Sessão: token aleatório de 32 bytes no cookie `mi_session` (httpOnly, sameSite=lax,
   secure em produção). No banco fica só o SHA-256 do token. 14 dias.
 - Limite de crédito cifrado com AES-256-GCM (`APP_ENCRYPTION_KEY`). Não guardamos número,

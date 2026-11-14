@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import { and, asc, eq, gt, sql } from "drizzle-orm";
 import { db, schema, type Tx } from "@/server/db";
 import { DomainError } from "@/server/services/errors";
+import { addDaysISO, todayISO } from "@/lib/dates";
+import { formatDate } from "@/lib/format";
 
 export type TransactionType = (typeof schema.transactionType.enumValues)[number];
 
@@ -94,18 +96,24 @@ export async function recordTransaction(tx: Tx, input: RecordInput) {
   }
 
   // Débito: consome lotes, primeiro os que vencem antes; lotes sem validade por último.
+  // Só valem lotes dentro da validade na data do débito (a validade inclui o próprio dia).
+  // A exceção é a expiração, que existe justamente para baixar lotes vencidos.
   let toConsume = -points;
+  const validOnDate =
+    type === "expiracao"
+      ? sql`true`
+      : sql`(${schema.balances.expiresAt} is null or ${schema.balances.expiresAt} >= ${input.occurredOn})`;
   const lots = await tx
     .select()
     .from(schema.balances)
-    .where(and(eq(schema.balances.accountId, accountId), gt(schema.balances.remaining, 0)))
+    .where(and(eq(schema.balances.accountId, accountId), gt(schema.balances.remaining, 0), validOnDate))
     .orderBy(sql`${schema.balances.expiresAt} asc nulls last`, asc(schema.balances.createdAt))
     .for("update");
 
   const available = lots.reduce((s, l) => s + l.remaining, 0);
   if (available < toConsume) {
     throw new DomainError(
-      `Saldo insuficiente: disponível ${available.toLocaleString("pt-BR")}, necessário ${toConsume.toLocaleString("pt-BR")}.`,
+      `Saldo insuficiente: disponível ${available.toLocaleString("pt-BR")} na data, necessário ${toConsume.toLocaleString("pt-BR")}. Pontos vencidos não contam.`,
     );
   }
   for (const lot of lots) {
@@ -118,6 +126,43 @@ export async function recordTransaction(tx: Tx, input: RecordInput) {
     toConsume -= take;
   }
   return created;
+}
+
+/**
+ * Registra a expiração de todos os lotes vencidos (validade anterior a hoje) de uma conta.
+ * Cada lote gera um lançamento de "expiração" com a data do dia seguinte ao vencimento.
+ */
+export async function writeOffExpired(userId: string, accountId: string) {
+  const today = todayISO();
+  return db.transaction(async (tx) => {
+    await lockAccount(tx, userId, accountId);
+    const expired = await tx
+      .select()
+      .from(schema.balances)
+      .where(
+        and(
+          eq(schema.balances.accountId, accountId),
+          gt(schema.balances.remaining, 0),
+          sql`${schema.balances.expiresAt} < ${today}`,
+        ),
+      )
+      .orderBy(asc(schema.balances.expiresAt), asc(schema.balances.createdAt));
+    let points = 0;
+    for (const lot of expired) {
+      const day = addDaysISO(lot.expiresAt!, 1);
+      // Os lotes vencidos são os primeiros na ordem FIFO, então a expiração consome exatamente este lote.
+      await recordTransaction(tx, {
+        userId,
+        accountId,
+        type: "expiracao",
+        points: -lot.remaining,
+        occurredOn: day > today ? today : day,
+        description: `Pontos vencidos em ${formatDate(lot.expiresAt)}`,
+      });
+      points += lot.remaining;
+    }
+    return { points, lots: expired.length };
+  });
 }
 
 /**
