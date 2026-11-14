@@ -138,21 +138,48 @@ async function main() {
   await rec({ accountId: esfera.id, type: "bonus", points: 3_500, occurredOn: addDaysISO(today, -300), expiresAt: addDaysISO(today, 21), description: "Bônus de campanha" });
   await rec({ accountId: smiles.id, type: "bonus", points: 5_000, occurredOn: addDaysISO(today, -330), expiresAt: addDaysISO(today, 64), description: "Bônus promocional" });
 
-  await db.insert(schema.trips).values({
-    userId: user.id,
-    title: "Férias em Lisboa",
-    origin: "GRU",
-    destination: "LIS",
-    departDate: addDaysISO(today, 120),
-    returnDate: addDaysISO(today, 134),
-    passengers: 2,
-    cabin: "economica",
-    programId: smiles.programId,
-    milesNeeded: 120_000,
-    cashPriceBrl: "7800.00",
-    notes: "Datas flexíveis em ±3 dias.",
-    flexibleDates: true,
-  });
+  // Viagens com cotações de exemplo (valores fictícios de demonstração).
+  const [lisboa, orlando] = await db
+    .insert(schema.trips)
+    .values([
+      {
+        userId: user.id,
+        title: "Férias em Lisboa",
+        origin: "GRU",
+        destination: "LIS",
+        departDate: addDaysISO(today, 120),
+        returnDate: addDaysISO(today, 134),
+        passengers: 2,
+        cabin: "economica",
+        flexDays: 3,
+        flexibleDates: true,
+        budgetBrl: "4000.00",
+        notes: "Datas flexíveis em ±3 dias.",
+      },
+      {
+        userId: user.id,
+        title: "Orlando com a família",
+        origin: "GRU",
+        destination: "MCO",
+        departDate: addDaysISO(today, 240),
+        returnDate: addDaysISO(today, 254),
+        passengers: 4,
+        cabin: "economica",
+        flexDays: 7,
+        flexibleDates: true,
+        budgetBrl: "6000.00",
+      },
+    ])
+    .returning();
+  const smilesProg = smiles.programId;
+  const latamProg = latam.programId;
+  await db.insert(schema.tripQuotes).values([
+    { tripId: lisboa.id, userId: user.id, kind: "milhas", certainty: "real", programId: smilesProg, milesPerPax: 60_000, taxesPerPaxBrl: "420.00", covers: "ida_volta", checkedOn: today, notes: "Exemplo de demonstração" },
+    { tripId: lisboa.id, userId: user.id, kind: "dinheiro", certainty: "real", label: "Site da companhia", cashPerPaxBrl: "3900.00", covers: "ida_volta", checkedOn: today },
+    { tripId: orlando.id, userId: user.id, kind: "milhas", certainty: "real", programId: smilesProg, milesPerPax: 45_000, taxesPerPaxBrl: "310.00", covers: "ida", checkedOn: today, notes: "Exemplo: por trecho" },
+    { tripId: orlando.id, userId: user.id, kind: "milhas", certainty: "real", programId: latamProg, milesPerPax: 110_000, taxesPerPaxBrl: "280.00", covers: "ida_volta", checkedOn: today },
+    { tripId: orlando.id, userId: user.id, kind: "dinheiro", certainty: "real", label: "Agência online", cashPerPaxBrl: "4800.00", covers: "ida_volta", checkedOn: today },
+  ]);
 
   console.log(`Usuário de demonstração criado: ${EMAIL} / ${PASSWORD}`);
 }

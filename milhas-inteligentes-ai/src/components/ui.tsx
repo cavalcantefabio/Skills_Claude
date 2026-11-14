@@ -300,7 +300,7 @@ export function FormMessage({ state }: { state: { ok: boolean; message?: string 
 
 export function Table({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cx("-mx-5 overflow-x-auto sm:-mx-6", className)}>
+    <div className={cx("relative -mx-5 overflow-x-auto sm:-mx-6", className)}>
       <table className="w-full min-w-[560px] text-sm">{children}</table>
     </div>
   );

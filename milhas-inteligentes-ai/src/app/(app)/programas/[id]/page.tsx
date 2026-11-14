@@ -95,7 +95,7 @@ export default async function AccountPage({ params }: PageProps<"/programas/[id]
         </Card>
       )}
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_420px]">
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
         <Card>
           <CardHeader title="Saldo por validade" description="Débitos consomem primeiro os pontos que vencem antes." />
           <CardBody>

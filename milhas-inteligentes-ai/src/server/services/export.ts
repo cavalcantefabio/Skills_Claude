@@ -5,6 +5,7 @@ import { listAccounts, listLots } from "@/server/services/accounts";
 import { listCards } from "@/server/services/cards";
 import { listTransactions } from "@/server/services/transactions";
 import { listTrips } from "@/server/services/trips";
+import { listTripQuotes } from "@/server/services/trip-plan";
 import { latestRadar } from "@/server/radar/run";
 import { toCsv } from "@/lib/csv";
 import { TX_LABEL } from "@/lib/labels";
@@ -25,7 +26,8 @@ export async function buildExport(userId: string) {
     .innerJoin(schema.profiles, eq(schema.profiles.userId, schema.users.id))
     .where(eq(schema.users.id, userId));
 
-  const [accounts, lots, transactions, cards, trips, customPrograms, simulations, conversations, radar] = await Promise.all([
+  const tripIds = (await db.select({ id: schema.trips.id }).from(schema.trips).where(eq(schema.trips.userId, userId))).map((t) => t.id);
+  const [accounts, lots, transactions, cards, trips, customPrograms, simulations, conversations, radar, quotes] = await Promise.all([
     listAccounts(userId, profileRow?.profile.expiryAlertDays ?? 90),
     listLots(userId),
     listTransactions(userId, { limit: 100_000 }),
@@ -35,6 +37,7 @@ export async function buildExport(userId: string) {
     db.select().from(schema.simulations).where(eq(schema.simulations.userId, userId)).orderBy(asc(schema.simulations.createdAt)),
     db.select().from(schema.agentConversations).where(eq(schema.agentConversations.userId, userId)).orderBy(asc(schema.agentConversations.createdAt)),
     latestRadar(userId),
+    listTripQuotes(userId, tripIds),
   ]);
 
   // Conversas do agente: só o texto visível (sem blocos internos de raciocínio ou ferramentas).
@@ -123,10 +126,25 @@ export async function buildExport(userId: string) {
       cabine: trip.cabin,
       situacao: trip.status,
       programa: programName,
-      milhas_necessarias: trip.milesNeeded,
-      preco_dinheiro_brl: num(trip.cashPriceBrl),
-      datas_flexiveis: trip.flexibleDates,
+      tipo: trip.tripType,
+      flexibilidade_dias: trip.flexDays,
+      orcamento_brl: num(trip.budgetBrl),
+      alertar_dias_antes: trip.alertDaysBefore,
       observacoes: trip.notes,
+      cotacoes: quotes
+        .filter((q) => q.quote.tripId === trip.id)
+        .map(({ quote: q, programName: p }) => ({
+          tipo: q.kind,
+          origem_do_valor: q.certainty,
+          programa: p,
+          site: q.label,
+          milhas_por_passageiro: q.milesPerPax,
+          taxas_por_passageiro_brl: num(q.taxesPerPaxBrl),
+          preco_por_passageiro_brl: num(q.cashPerPaxBrl),
+          cobre: q.covers,
+          fonte: q.sourceUrl,
+          consultado_em: q.checkedOn,
+        })),
     })),
     simulacoes: simulations.map((s) => ({ calculadora: s.calculator, titulo: s.title, entradas: s.input, resultado: s.result, criada_em: s.createdAt.toISOString() })),
     conversas_agente: conversationExport,
