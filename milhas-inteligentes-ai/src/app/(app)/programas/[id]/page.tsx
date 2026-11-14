@@ -7,6 +7,7 @@ import { listAccounts, listLots } from "@/server/services/accounts";
 import { listTransactions } from "@/server/services/transactions";
 import { deleteAccount, updateAccount } from "@/server/actions/accounts";
 import { deleteTx } from "@/server/actions/transactions";
+import { AskAgent } from "@/components/agent/ask-agent";
 import { EditAccountForm } from "@/components/forms/account-form";
 import { DeleteButton } from "@/components/forms/submit";
 import { TxTable } from "@/components/tx-table";
@@ -37,6 +38,10 @@ export default async function AccountPage({ params }: PageProps<"/programas/[id]
         description={`Saldo em ${account.unit}, lotes por validade e histórico de movimentações.`}
         actions={
           <>
+            <AskAgent
+              size="md"
+              question={`Analise meu programa ${account.programName}: saldo, validades, clube e valor do milheiro. O que você sugere fazer com esses ${account.unit}?`}
+            />
             <LinkButton href={`/milhas?programa=${account.id}#lancar`} variant="secondary">
               <Plus className="size-4" aria-hidden /> Lançar movimentação
             </LinkButton>

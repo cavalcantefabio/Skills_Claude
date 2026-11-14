@@ -12,6 +12,7 @@ import { DeleteButton } from "@/components/forms/submit";
 import { Card, CardBody, CardHeader, LinkButton, PageHeader, cx } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { formatUSD, PRICING_AS_OF } from "@/lib/pricing";
+import { ASK_MAX_LENGTH } from "@/lib/ask-agent";
 import { getAgentUsageSummary } from "@/server/agent/usage";
 import { messagesToday } from "@/server/agent/run";
 import { env } from "@/server/env";
@@ -44,6 +45,8 @@ export default async function AgentPage({ searchParams }: PageProps<"/agente">) 
     );
   }
 
+  // Pergunta preparada por um botão "Perguntar ao agente" (só para conversa nova).
+  const prepared = typeof sp.q === "string" ? sp.q.trim().slice(0, ASK_MAX_LENGTH) : "";
   const selected = typeof sp.c === "string" && z.string().uuid().safeParse(sp.c).success ? sp.c : null;
   const [conversations, usage, sentToday, view] = await Promise.all([
     listConversations(user.id),
@@ -130,10 +133,11 @@ export default async function AgentPage({ searchParams }: PageProps<"/agente">) 
         </aside>
         <section className="order-1 min-w-0 xl:order-2" aria-label="Conversa">
           <AgentChat
-            key={view?.conversation.id ?? "nova"}
+            key={view?.conversation.id ?? `nova-${prepared}`}
             conversationId={view?.conversation.id ?? null}
             initialItems={view?.items ?? []}
             initialActions={view?.actions ?? []}
+            initialInput={view ? "" : prepared}
           />
         </section>
       </div>

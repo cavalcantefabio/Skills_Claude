@@ -6,6 +6,7 @@ import { listTrips } from "@/server/services/trips";
 import { listAccounts } from "@/server/services/accounts";
 import { Badge, Card, EmptyState, InDevelopment, LinkButton, PageHeader, buttonClass } from "@/components/ui";
 import { dinheiroVsMilhas } from "@/lib/calculators";
+import { AskAgent } from "@/components/agent/ask-agent";
 import { formatBRL, formatDate, formatPoints } from "@/lib/format";
 import { CABIN_LABEL, TRIP_STATUS_LABEL } from "@/lib/labels";
 
@@ -88,10 +89,13 @@ export default async function TripsPage() {
                     Cada milheiro vale {formatBRL(cmp.raw.valorObtido)} nesta emissão (sem contar taxas), contra {formatBRL(acc!.milheiroValueBrl!)} do seu valor de referência.
                   </p>
                 )}
-                <div className="mt-auto pt-4">
+                <div className="mt-auto flex flex-wrap gap-2 pt-4">
                   <Link href={`/viagens/${trip.id}`} className={buttonClass("secondary", "sm")}>
                     <Pencil className="size-3.5" aria-hidden /> Editar
                   </Link>
+                  <AskAgent
+                    question={`Analise minha viagem "${trip.title}" (${trip.origin} → ${trip.destination}${trip.departDate ? `, ida em ${formatDate(trip.departDate)}` : ""}, ${trip.passengers} passageiro(s), ${CABIN_LABEL[trip.cabin]}). Tenho milhas suficientes? Vale mais emitir com milhas ou pagar em dinheiro, e qual o melhor caminho para juntar o que falta?`}
+                  />
                 </div>
               </Card>
             );
