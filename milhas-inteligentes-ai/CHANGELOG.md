@@ -13,8 +13,12 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Tabelas `radar_runs` e `radar_opportunities`; `agent_usage` ganhou `source` e `web_searches`.
 - Buscas na web entram no custo (US$ 0,01 cada). Limite diário `RADAR_DAILY_LIMIT` (padrão 3).
 
+### Alterado
+- O Radar usa o Claude Sonnet 5.5 (o agente de conversa segue no Opus 5.5).
+
 ### Verificado
-- Atualização real: 4 promoções vigentes encontradas em 46 s, 8 buscas, US$ 0,71.
+- Atualização real com o Opus 5.5: 4 promoções em 46 s, 8 buscas, US$ 0,71.
+- Atualização real com o Sonnet 5.5: 5 promoções em 42 s, 8 buscas, US$ 0,34.
 
 ## [0.5.0] - 2026-11-14
 

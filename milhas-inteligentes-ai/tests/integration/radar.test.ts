@@ -91,6 +91,8 @@ describe("runRadar", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const r = await radar.runRadar({ client: client as any, userId, dailyLimit: 5 });
     expect(r.found).toBe(2);
+    expect(calls[0].model).toBe("claude-sonnet-5-5");
+    expect(calls[0].fallbacks).toBe("default");
     const tools = calls[0].tools as { type?: string; name: string; allowed_domains?: string[] }[];
     const web = tools.find((t) => t.name === "web_search")!;
     expect(web.type).toBe("web_search_20260209");

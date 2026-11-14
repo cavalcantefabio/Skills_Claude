@@ -115,7 +115,7 @@ export default async function RadarPage() {
           <EmptyState
             icon={RadarIcon}
             title="Nenhuma pesquisa feita ainda"
-            description="Clique em Atualizar radar. O Claude pesquisa as promoções vigentes e o app calcula o efeito nos seus saldos. Cada atualização custa cerca de US$ 0,15 a 0,30."
+            description="Clique em Atualizar radar. O Claude pesquisa as promoções vigentes e o app calcula o efeito nos seus saldos. Cada atualização custa cerca de US$ 0,35."
           />
         </Card>
       ) : items.length === 0 ? (

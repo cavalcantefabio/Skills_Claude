@@ -19,7 +19,7 @@ calculadoras de milheiro, com dashboard e modo claro/escuro.
 | Planejador de Viagens | 🟡 parcial | Cadastro de viagens e progresso do saldo. Busca automática em desenvolvimento |
 | Alertas | 🟡 parcial | Vencimentos, pontos vencidos, clubes deficitários e viagens sem saldo. Notificações em desenvolvimento |
 | Configurações | ✅ | Perfil, cotação do dólar, janela de alertas, tema, troca de senha e saída de todos os dispositivos |
-| Radar de Oportunidades | ✅ | Pesquisa sob demanda (botão) de promoções vigentes de transferência e compra de pontos, com fonte, cálculo para os seus saldos e alertas. Requer `MILHAS_ANTHROPIC_API_KEY`; ~US$ 0,70 por atualização |
+| Radar de Oportunidades | ✅ | Pesquisa sob demanda (botão) de promoções vigentes de transferência e compra de pontos, com fonte, cálculo para os seus saldos e alertas. Requer `MILHAS_ANTHROPIC_API_KEY`; ~US$ 0,35 por atualização (Claude Sonnet 5.5) |
 | Agente Inteligente | ✅ | Chat com IA que consulta seus dados, faz as contas e propõe lançamentos, transferências e viagens. Nada é gravado sem sua confirmação. Requer `MILHAS_ANTHROPIC_API_KEY` |
 
 ## Requisitos

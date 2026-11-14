@@ -44,7 +44,7 @@
       promoções vigentes de transferência bonificada e compra de pontos, sempre com fonte e datas
 - [x] Cálculo do efeito nos saldos e comparação com o valor do milheiro; alertas das promoções relevantes
 - [x] Custo por atualização no painel de uso; limite diário (`RADAR_DAILY_LIMIT`)
-- [ ] Reduzir o custo por atualização (hoje ~US$ 0,70, a maior parte é a leitura das páginas)
+- [x] Custo reduzido de ~US$ 0,71 para ~US$ 0,34 por atualização com o Claude Sonnet 5.5 no Radar
 - [ ] Atualização automática agendada (decidido começar manual)
 - [ ] Passagens com milhas: sem API pública para Smiles, LATAM Pass e Azul
 

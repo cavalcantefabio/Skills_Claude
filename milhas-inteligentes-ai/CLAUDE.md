@@ -141,7 +141,7 @@ Perguntar ao agente: `<AskAgent question="…">` (`src/components/agent/ask-agen
 `/agente?q=…` (até 500 caracteres); a pergunta entra no campo sem enviar. Alertas trazem a pergunta
 pronta em `Alert.question` (`services/alerts.ts`).
 
-Radar (`src/server/radar/run.ts`): uma chamada com `web_search_20260209` (`allowed_domains` =
+Radar (`src/server/radar/run.ts`): modelo `RADAR_MODEL` = `claude-sonnet-5-5` (escolha da pessoa, por custo; o agente segue no Opus 5.5). Uma chamada com `web_search_20260209` (`allowed_domains` =
 `RADAR_DOMAINS`, `max_uses` 8) + ferramenta cliente `registrar_promocoes` (zod; `fonte_url` só
 http(s)). Grava `radar_runs`/`radar_opportunities` e uso com `source: "radar"`. O cálculo para os
 saldos é puro (`src/lib/radar.ts`). O custo vem quase todo dos tokens das páginas lidas.

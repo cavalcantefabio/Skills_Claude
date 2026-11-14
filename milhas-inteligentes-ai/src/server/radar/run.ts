@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "@/server/db";
-import { AGENT_MODEL, FALLBACK_BETA, type AgentClient } from "@/server/agent/client";
+import { FALLBACK_BETA, type AgentClient } from "@/server/agent/client";
 import { listAccounts } from "@/server/services/accounts";
 import { DomainError } from "@/server/services/errors";
 import { formatDate } from "@/lib/format";
@@ -31,6 +31,12 @@ export const RADAR_DOMAINS = [
   "pontospravoar.com",
   "mestredasmilhas.com",
 ];
+
+/**
+ * Modelo do Radar: Claude Sonnet 5.5, escolhido pela pessoa para reduzir o custo
+ * (a leitura das páginas domina o gasto). O agente de conversa segue no Opus 5.5.
+ */
+export const RADAR_MODEL = "claude-sonnet-5-5";
 
 const MAX_SEARCHES = 8;
 const MAX_ITERATIONS = 6;
@@ -167,7 +173,7 @@ export async function runRadar({
   try {
     for (let i = 0; i < MAX_ITERATIONS && !registered; i++) {
       const stream = client.beta.messages.stream({
-        model: AGENT_MODEL,
+        model: RADAR_MODEL,
         max_tokens: 32000,
         system: radarSystemPrompt(catalog),
         tools,
@@ -191,7 +197,7 @@ export async function runRadar({
       await db.insert(schema.agentUsage).values({
         userId,
         conversationId: null,
-        model: message.model || AGENT_MODEL,
+        model: message.model || RADAR_MODEL,
         inputTokens: cost.tokens.input,
         outputTokens: cost.tokens.output,
         cacheReadTokens: cost.tokens.cacheRead,
