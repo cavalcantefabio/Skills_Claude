@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Tokens de design. Componentes usam papéis (bg, surface, ink...), nunca hex.
+ * Paleta categórica e de status: paleta de referência validada (skill dataviz),
+ * com passos próprios para o modo escuro.
+ */
+:root {
+  color-scheme: light;
+  --bg: #f5f5f2;
+  --surface: #ffffff;
+  --surface-2: #f0efeb;
+  --surface-3: #e8e7e2;
+  --border: rgba(11, 11, 11, 0.09);
+  --border-strong: rgba(11, 11, 11, 0.16);
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #7a7873;
+
+  --accent: #1d4fd8;
+  --accent-hover: #1a44b8;
+  --accent-ink: #ffffff;
+  --accent-soft: #e7eefc;
+  --accent-soft-ink: #1a3f9e;
+
+  --sidebar: #0f1115;
+  --sidebar-ink: #e9e8e4;
+  --sidebar-muted: #8b8a85;
+  --sidebar-active: #1c1f26;
+
+  --good: #0ca30c;
+  --good-ink: #006300;
+  --good-soft: #e6f5e6;
+  --warning: #fab219;
+  --warning-ink: #8a5a00;
+  --warning-soft: #fdf3dc;
+  --critical: #d03b3b;
+  --critical-ink: #a32626;
+  --critical-soft: #fbe9e9;
+
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #6250d6;
+  --series-8: #e34948;
+
+  --chart-surface: #ffffff;
+  --grid: #e9e8e2;
+  --axis: #c3c2b7;
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #0b0c0e;
+  --surface: #15161a;
+  --surface-2: #1c1d22;
+  --surface-3: #25262c;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --ink: #f0efec;
+  --ink-2: #c3c2b7;
+  --muted: #8f8e88;
+
+  --accent: #5b8cff;
+  --accent-hover: #7aa2ff;
+  --accent-ink: #0b0c0e;
+  --accent-soft: #18233d;
+  --accent-soft-ink: #a9c1ff;
+
+  --sidebar: #08090b;
+  --sidebar-ink: #e9e8e4;
+  --sidebar-muted: #7f7e79;
+  --sidebar-active: #17191e;
+
+  --good-ink: #3fc23f;
+  --good-soft: #10260f;
+  --warning-ink: #fab219;
+  --warning-soft: #2b2310;
+  --critical-ink: #ef7a7a;
+  --critical-soft: #2d1414;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+
+  --chart-surface: #15161a;
+  --grid: #26272c;
+  --axis: #383835;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-ink: var(--accent-soft-ink);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-ink: var(--sidebar-ink);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-good: var(--good);
+  --color-good-ink: var(--good-ink);
+  --color-good-soft: var(--good-soft);
+  --color-warning: var(--warning);
+  --color-warning-ink: var(--warning-ink);
+  --color-warning-soft: var(--warning-soft);
+  --color-critical: var(--critical);
+  --color-critical-ink: var(--critical-ink);
+  --color-critical-soft: var(--critical-soft);
+  --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Foco visível e consistente */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Recharts: sem contorno de foco nos SVGs ao clicar */
+.recharts-wrapper svg:focus,
+.recharts-surface:focus {
+  outline: none;
+}
+
+/* Markdown das respostas do agente */
+.agent-md > * + * { margin-top: 0.75em; }
+.agent-md h1, .agent-md h2, .agent-md h3 { font-weight: 600; font-size: 15px; margin-top: 1.1em; }
+.agent-md ul { list-style: disc; padding-left: 1.25em; }
+.agent-md ol { list-style: decimal; padding-left: 1.25em; }
+.agent-md li + li { margin-top: 0.25em; }
+.agent-md strong { font-weight: 600; }
+.agent-md code { font-size: 0.9em; background: var(--surface-2); border-radius: 6px; padding: 0.1em 0.35em; }
+.agent-md th { text-align: left; font-weight: 500; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.agent-md td { padding: 8px 12px; border-top: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.agent-md tr:first-child td { border-top: 0; }
+.agent-md blockquote { border-left: 3px solid var(--border-strong); padding-left: 0.75em; color: var(--ink-2); }
