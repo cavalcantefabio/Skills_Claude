@@ -67,6 +67,7 @@
 ## Ciclo de melhoria contínua
 
 - [x] 0.7.0: saldo disponível sem pontos vencidos; proteção do login contra força bruta.
-- [ ] Exportar meus dados (JSON + CSV) como backup.
+- [x] 0.8.0: exportar meus dados (JSON completo + CSV de movimentações e saldos).
+- [ ] Importar um backup JSON (restauração).
 - [ ] Perguntas de referência para avaliar o agente e o Radar.
 - [ ] Radar automático 2 vezes por semana.

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { ShieldCheck } from "lucide-react";
+import { Download, FileSpreadsheet, ShieldCheck } from "lucide-react";
 import { requireUser } from "@/server/auth/session";
 import { changePassword, logoutEverywhere, updateProfile } from "@/server/actions/settings";
 import { PasswordForm, ProfileForm } from "@/components/forms/settings-forms";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Button, Card, CardBody, CardHeader, PageHeader } from "@/components/ui";
+import { Button, Card, CardBody, CardHeader, PageHeader, buttonClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Configurações" };
 
@@ -16,6 +16,30 @@ export default async function SettingsPage() {
       <div className="grid gap-4 xl:grid-cols-[1.3fr_1fr]">
         <div className="flex flex-col gap-4">
           <ProfileForm action={updateProfile} initial={user} />
+          <Card>
+            <CardHeader
+              title="Seus dados"
+              description="Baixe uma cópia dos seus dados para guardar como backup ou analisar no Excel."
+            />
+            <CardBody className="flex flex-col gap-3">
+              <div className="flex flex-wrap gap-2">
+                <a href="/api/exportar?arquivo=completo" download className={buttonClass("primary", "sm")}>
+                  <Download className="size-3.5" aria-hidden /> Backup completo (JSON)
+                </a>
+                <a href="/api/exportar?arquivo=movimentacoes" download className={buttonClass("secondary", "sm")}>
+                  <FileSpreadsheet className="size-3.5" aria-hidden /> Movimentações (CSV)
+                </a>
+                <a href="/api/exportar?arquivo=saldos" download className={buttonClass("secondary", "sm")}>
+                  <FileSpreadsheet className="size-3.5" aria-hidden /> Saldos por validade (CSV)
+                </a>
+              </div>
+              <p className="text-xs text-muted">
+                O backup completo inclui programas, saldos, movimentações, cartões (com o limite de crédito), viagens, simulações,
+                conversas com o agente e a última pesquisa do Radar. Não inclui sua senha. Guarde o arquivo em local seguro: ele contém
+                dados financeiros.
+              </p>
+            </CardBody>
+          </Card>
           <Card>
             <CardHeader title="Aparência" description="Claro, escuro ou seguir o sistema." />
             <CardBody>

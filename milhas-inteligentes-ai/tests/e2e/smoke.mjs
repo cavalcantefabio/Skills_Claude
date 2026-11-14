@@ -192,6 +192,25 @@ try {
   assert((await page.getByText(/já venceram/).count()) === 0, "após registrar a expiração, o aviso some");
   assert((await page.textContent("main")).includes("Pontos vencidos em 30/06/2025"), "histórico mostra a expiração com a data do vencimento");
 
+  console.log("Exportação de dados");
+  await page.goto(`${BASE}/configuracoes`);
+  const fs = await import("node:fs/promises");
+  const grab = async (label) => {
+    const [dl] = await Promise.all([page.waitForEvent("download"), page.click(`text=${label}`)]);
+    return { name: dl.suggestedFilename(), body: await fs.readFile(await dl.path(), "utf8") };
+  };
+  const full = await grab("Backup completo (JSON)");
+  const backup = JSON.parse(full.body);
+  assert(/^milhas-inteligentes-backup-\d{4}-\d{2}-\d{2}\.json$/.test(full.name), "backup completo baixa como JSON datado");
+  assert(backup.programas.length === 2 && backup.movimentacoes.length > 0 && backup.cartoes[0].limite_credito_brl === 15000, "backup traz programas, movimentações e cartões");
+  assert(!full.body.includes("password") && !full.body.includes("$2b$"), "backup não contém senha");
+  const movs = await grab("Movimentações (CSV)");
+  assert(movs.body.startsWith("\uFEFFData;Programa;Tipo;Pontos"), "CSV de movimentações abre no Excel (BOM e ;)");
+  const lots = await grab("Saldos por validade (CSV)");
+  assert(lots.body.includes("Programa;Unidade;Disponível"), "CSV de saldos por validade");
+  const anon = await fetch(`${BASE}/api/exportar?arquivo=completo`);
+  assert(anon.status === 401, "sem login, a exportação é recusada (401)");
+
   console.log("Bloqueio de login");
   const ctx2 = await browser.newContext();
   const p2 = await ctx2.newPage();
