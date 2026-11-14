@@ -71,3 +71,15 @@
 - [ ] Importar um backup JSON (restauração).
 - [ ] Perguntas de referência para avaliar o agente e o Radar.
 - [ ] Radar automático 2 vezes por semana.
+
+## Etapa complementar: Planejador inteligente de viagens ✅ (0.9.0)
+
+- [x] Banco: cotações reais/estimadas, programas considerados, orçamento, flexibilidade, alertas
+- [x] Cálculos: meta, saldo com transferências, faltam, melhor programa, milhas x dinheiro,
+      compra só quando compensa, cenários e prazo
+- [x] Minhas Viagens e plano da viagem; simulador; evolução da meta
+- [x] Integração com Radar (promoções ligadas à viagem), alertas e agente MILHAS AI
+- [x] Pesquisa de referências com fonte (estimativas)
+- [ ] Disponibilidade real de assentos (sem API pública para Smiles, LATAM Pass e Azul)
+- [ ] Parcerias de transferência por programa (hoje: premissa 1:1 de qualquer banco para a companhia)
+- [ ] Histórico de cotações por data para acompanhar a variação de preço

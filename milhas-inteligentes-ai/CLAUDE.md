@@ -88,6 +88,22 @@ tests/                unit/, integration/, e2e/smoke.mjs
   componentes cliente; `server-only` protege os módulos de servidor.
 - Cabeçalhos de segurança em `next.config.ts`.
 
+## Planejador de viagens
+
+- Motor puro: `src/lib/travel-plan.ts` (`buildTripPlan`). Recebe viagem, cotações, contas (com acúmulo
+  médio de 6 meses) e promoções vigentes do Radar; devolve opções por programa, dinheiro,
+  recomendação, cenários e ações. Sem I/O, com testes em `tests/unit/travel-plan.test.ts`.
+- Dados: `src/server/services/trip-plan.ts` (`loadTripPlans`) monta as entradas a partir do banco.
+- Regras: meta e preços vêm só de cotações (`trip_quotes`); cotação real vence estimativa do mesmo
+  programa; estimativa exige `source_url`; pontos de banco entram por paridade 1:1 (premissa) ou pela
+  promoção vigente; compra só é recomendada se o milheiro comprado custar menos do que rende; cenários
+  hipotéticos são marcados `basis: "hipotetico"`.
+- Pesquisa de referências: `src/server/trips/research.ts` (modelo `RADAR_MODEL`, busca restrita a
+  `TRIP_RESEARCH_DOMAINS`), salva estimativas; uso com `source: "viagem"`.
+- Agente: `analisar_viagem`, `consultar_viagens`, `propor_viagem`, `propor_cotacao`.
+- Testes locais: se o login do demo travar depois de várias rodadas do e2e, é o limite por IP
+  (30 falhas/15 min de `127.0.0.1`); limpe com `delete from login_attempts` no banco local.
+
 ## Exportação
 
 `src/server/services/export.ts` monta o backup (formato `milhas-inteligentes-ai`, `versao_formato`).

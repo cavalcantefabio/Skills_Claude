@@ -87,7 +87,15 @@ export default async function TripPlanPage({ params }: PageProps<"/viagens/[id]"
         <StatTile
           label="Custo estimado"
           value={brl(plan.estimatedCostBrl)}
-          sub={plan.budget ? (plan.budget.withinBudget ? `Dentro do orçamento de ${formatBRL(plan.budget.budgetBrl)}` : `Acima do orçamento de ${formatBRL(plan.budget.budgetBrl)}`) : "Defina um orçamento ao editar"}
+          sub={
+            plan.budget
+              ? plan.budget.withinBudget
+                ? `Dentro do orçamento de ${formatBRL(plan.budget.budgetBrl)}`
+                : `Acima do orçamento de ${formatBRL(plan.budget.budgetBrl)}`
+              : trip.budgetBrl != null
+                ? `Orçamento: ${formatBRL(Number(trip.budgetBrl))}`
+                : "Defina um orçamento ao editar"
+          }
         />
       </div>
 

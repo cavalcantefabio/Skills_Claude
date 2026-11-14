@@ -16,7 +16,7 @@ calculadoras de milheiro, com dashboard e modo claro/escuro.
 | Programas de Fidelidade | ✅ | Livelo, Esfera, Smiles, LATAM Pass, Azul e outros do catálogo, ou programa personalizado. Saldo, validade, clube, custo e histórico |
 | Minhas Milhas | ✅ | Acúmulos (com cartão), bônus, compras, resgates (com economia), expirações, ajustes e transferências com paridade e bônus |
 | Calculadoras | ✅ | Custo por milheiro, transferência bonificada, compra de pontos, dinheiro x milhas, retorno anual de cartão e clube de pontos. Cada uma explica o cálculo e permite salvar simulações |
-| Planejador de Viagens | 🟡 parcial | Cadastro de viagens e progresso do saldo. Busca automática em desenvolvimento |
+| Minhas Viagens | ✅ | Planejador inteligente: meta de milhas a partir de cotações (reais ou estimadas com fonte), saldo com transferências, quanto falta, melhor programa, milhas x dinheiro, cenários e prazo, simulador, alertas e pesquisa de referências por IA |
 | Alertas | 🟡 parcial | Vencimentos, pontos vencidos, clubes deficitários e viagens sem saldo. Notificações em desenvolvimento |
 | Configurações | ✅ | Perfil, cotação do dólar, janela de alertas, tema, troca de senha e saída de todos os dispositivos |
 | Radar de Oportunidades | ✅ | Pesquisa sob demanda (botão) de promoções vigentes de transferência e compra de pontos, com fonte, cálculo para os seus saldos e alertas. Requer `MILHAS_ANTHROPIC_API_KEY`; ~US$ 0,35 por atualização (Claude Sonnet 5.5) |
@@ -62,6 +62,7 @@ pnpm dev          # http://localhost:3000
 | `MILHAS_ANTHROPIC_API_KEY` | Chave da API do Claude para o Agente Inteligente. Opcional: sem ela o agente fica desativado. `ANTHROPIC_API_KEY` também é aceita, mas em sessões do Claude Code esse nome é reservado pela plataforma |
 | `ALLOW_SIGNUP` | Padrão `false`: o cadastro só abre enquanto não existe nenhuma conta (uso pessoal). `true` mantém aberto (desenvolvimento e testes) |
 | `DATABASE_POOL_MAX` | Conexões com o banco por instância (padrão 10; use 3 na Vercel) |
+| `TRIP_RESEARCH_DAILY_LIMIT` | Pesquisas de referência de viagem por dia (padrão 5) |
 | `RADAR_DAILY_LIMIT` | Atualizações do Radar por dia (padrão 3) |
 | `AGENT_DAILY_MESSAGE_LIMIT` | Mensagens por usuário por dia ao agente (padrão 60) |
 | `APP_ENCRYPTION_KEY` | 32 bytes em base64 para AES-256-GCM (limite de crédito). Trocar a chave torna ilegíveis os limites já salvos |
