@@ -150,6 +150,8 @@ async function recordUsage(userId: string, conversationId: string, message: Anth
     outputTokens: cost.tokens.output,
     cacheReadTokens: cost.tokens.cacheRead,
     cacheWriteTokens: cost.tokens.cacheWrite,
+    webSearches: cost.webSearches,
+    source: "agente",
     costUsd: cost.usd.toFixed(6),
   });
 }

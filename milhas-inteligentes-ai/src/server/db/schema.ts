@@ -455,8 +455,71 @@ export const agentUsage = pgTable(
     outputTokens: integer("output_tokens").notNull().default(0),
     cacheReadTokens: integer("cache_read_tokens").notNull().default(0),
     cacheWriteTokens: integer("cache_write_tokens").notNull().default(0),
+    webSearches: integer("web_searches").notNull().default(0),
+    /** Origem do uso: conversa do agente ou atualização do Radar. */
+    source: text("source").notNull().default("agente"),
     costUsd: numeric("cost_usd", { precision: 12, scale: 6 }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("agent_usage_user_date_idx").on(t.userId, t.createdAt), index("agent_usage_conv_idx").on(t.conversationId)],
+);
+
+/* ------------------------------------------------------------------ */
+/* Radar de Oportunidades (Etapa 3)                                    */
+/* ------------------------------------------------------------------ */
+
+export const radarRunStatus = pgEnum("radar_run_status", ["executando", "concluida", "falhou"]);
+export const opportunityKind = pgEnum("opportunity_kind", ["transferencia", "compra", "outra"]);
+
+/** Cada clique em "Atualizar radar". */
+export const radarRuns = pgTable(
+  "radar_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: radarRunStatus("status").notNull().default("executando"),
+    summary: text("summary"),
+    error: text("error"),
+    webSearches: integer("web_searches").notNull().default(0),
+    costUsd: numeric("cost_usd", { precision: 12, scale: 6 }).notNull().default("0"),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+  },
+  (t) => [index("radar_runs_user_idx").on(t.userId, t.startedAt)],
+);
+
+/** Promoções encontradas numa atualização, sempre com a fonte. */
+export const radarOpportunities = pgTable(
+  "radar_opportunities",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    runId: uuid("run_id")
+      .notNull()
+      .references(() => radarRuns.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: opportunityKind("kind").notNull(),
+    title: text("title").notNull(),
+    /** Slug do catálogo (ex.: "livelo") quando reconhecido; nome livre em *_name. */
+    fromSlug: text("from_slug"),
+    fromName: text("from_name"),
+    toSlug: text("to_slug"),
+    toName: text("to_name"),
+    bonusPct: numeric("bonus_pct", { precision: 7, scale: 2 }),
+    /** Paridade origem:destino (ex.: 1 e 1 para 1:1). */
+    ratioFrom: numeric("ratio_from", { precision: 8, scale: 2 }),
+    ratioTo: numeric("ratio_to", { precision: 8, scale: 2 }),
+    discountPct: numeric("discount_pct", { precision: 7, scale: 2 }),
+    pricePerThousandBrl: numeric("price_per_thousand_brl", { precision: 10, scale: 2 }),
+    startsOn: date("starts_on"),
+    endsOn: date("ends_on"),
+    conditions: text("conditions"),
+    sourceUrl: text("source_url").notNull(),
+    sourceName: text("source_name"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("radar_opp_run_idx").on(t.runId), index("radar_opp_user_idx").on(t.userId)],
 );

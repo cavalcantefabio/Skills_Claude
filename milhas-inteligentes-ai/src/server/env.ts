@@ -25,6 +25,8 @@ const schema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((v) => v === "true"),
+  /** Atualizações do Radar de Oportunidades por usuário por dia (cada uma usa busca na web). */
+  RADAR_DAILY_LIMIT: z.coerce.number().int().positive().default(3),
   /** Conexões simultâneas por instância. Em hospedagem serverless (Vercel), use poucas. */
   DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(50).default(10),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
