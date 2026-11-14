@@ -24,7 +24,11 @@ export type UsageLike = {
   cache_read_input_tokens?: number | null;
   cache_creation_input_tokens?: number | null;
   cache_creation?: { ephemeral_5m_input_tokens?: number | null; ephemeral_1h_input_tokens?: number | null } | null;
+  server_tool_use?: { web_search_requests?: number | null } | null;
 };
+
+/** Busca na web (ferramenta do servidor): US$ 10 por 1.000 buscas. */
+export const WEB_SEARCH_USD = 0.01;
 
 /** Normaliza ids com sufixos (ex.: datas ou "[1m]") para a chave da tabela. */
 function ratesFor(model: string | null | undefined): { rates: Rates; known: boolean } {
@@ -44,10 +48,12 @@ export function usageCost(usage: UsageLike, model?: string | null) {
   // Escrita em cache: 1,25× a entrada (5 min) ou 2× (1 h). Sem detalhamento, assume 5 min.
   const w1h = n(usage.cache_creation?.ephemeral_1h_input_tokens);
   const w5m = usage.cache_creation ? n(usage.cache_creation.ephemeral_5m_input_tokens) : n(usage.cache_creation_input_tokens);
+  const webSearches = n(usage.server_tool_use?.web_search_requests);
   const usd =
+    webSearches * WEB_SEARCH_USD +
     (input * rates.input + output * rates.output + cacheRead * rates.cacheRead + w5m * rates.input * 1.25 + w1h * rates.input * 2) /
     1_000_000;
-  return { usd, knownModel: known, tokens: { input, output, cacheRead, cacheWrite: w5m + w1h } };
+  return { usd, knownModel: known, webSearches, tokens: { input, output, cacheRead, cacheWrite: w5m + w1h } };
 }
 
 const usdFmt = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });

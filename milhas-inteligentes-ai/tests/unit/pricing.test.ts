@@ -29,6 +29,12 @@ describe("usageCost", () => {
     expect(unknown.usd).toBe(20);
   });
 
+  it("cobra US$ 0,01 por busca na web", () => {
+    const r = usageCost({ output_tokens: 1000, server_tool_use: { web_search_requests: 5 } }, "claude-opus-5-5");
+    expect(r.webSearches).toBe(5);
+    expect(r.usd).toBeCloseTo(0.05 + 0.02, 9);
+  });
+
   it("formata valores pequenos sem virar zero", () => {
     expect(formatUSD(0.0434).replace(/ /g, " ")).toBe("US$ 0,043");
     expect(formatUSD(1.5).replace(/ /g, " ")).toBe("US$ 1,50");

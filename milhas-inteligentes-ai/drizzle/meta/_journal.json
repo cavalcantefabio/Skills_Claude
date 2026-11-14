@@ -43,6 +43,13 @@
       "when": 1794624180052,
       "tag": "0005_agente_uso_historico",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794625936680,
+      "tag": "0006_radar",
+      "breakpoints": true
     }
   ]
 }

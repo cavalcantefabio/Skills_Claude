@@ -2,6 +2,20 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.6.0] - 2026-11-14 (Etapa 3, entrega 1)
+
+### Adicionado
+- Radar de Oportunidades: o Claude pesquisa na web (domínios restritos a sites oficiais e blogs de
+  milhas) e registra promoções vigentes com fonte, datas, bônus e condições; promoções vencidas ou
+  com link fora de http(s) são descartadas.
+- Cálculo para os saldos da pessoa (milhas recebidas, custo efetivo do milheiro e comparação com o
+  valor de referência) e alertas das promoções relevantes.
+- Tabelas `radar_runs` e `radar_opportunities`; `agent_usage` ganhou `source` e `web_searches`.
+- Buscas na web entram no custo (US$ 0,01 cada). Limite diário `RADAR_DAILY_LIMIT` (padrão 3).
+
+### Verificado
+- Atualização real: 4 promoções vigentes encontradas em 46 s, 8 buscas, US$ 0,71.
+
 ## [0.5.0] - 2026-11-14
 
 ### Adicionado

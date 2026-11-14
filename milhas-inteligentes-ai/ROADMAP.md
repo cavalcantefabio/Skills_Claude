@@ -38,7 +38,17 @@
 - [x] Botão "Perguntar ao agente" em alertas, viagens, cartões e na página de cada programa (pergunta preparada, enviada só pela pessoa)
 - FastAPI segue desnecessário.
 
-## Etapa 3: Radar automatizado de oportunidades 🚧
+## Etapa 3: Radar de oportunidades 🟡 (entrega 1 concluída)
+
+- [x] Botão "Atualizar radar": Claude com busca na web (sites oficiais + blogs de milhas) registra
+      promoções vigentes de transferência bonificada e compra de pontos, sempre com fonte e datas
+- [x] Cálculo do efeito nos saldos e comparação com o valor do milheiro; alertas das promoções relevantes
+- [x] Custo por atualização no painel de uso; limite diário (`RADAR_DAILY_LIMIT`)
+- [ ] Reduzir o custo por atualização (hoje ~US$ 0,70, a maior parte é a leitura das páginas)
+- [ ] Atualização automática agendada (decidido começar manual)
+- [ ] Passagens com milhas: sem API pública para Smiles, LATAM Pass e Azul
+
+### Planejado antes (referência)
 
 - Coleta de promoções de transferência bonificada e compra de pontos, com fonte e data.
 - Busca de disponibilidade de passagens com milhas (skills `award-travel`/`flight-search`

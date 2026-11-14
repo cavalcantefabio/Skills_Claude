@@ -1,6 +1,8 @@
 import "server-only";
 import { listAccounts, listLots } from "@/server/services/accounts";
 import { listTrips } from "@/server/services/trips";
+import { latestRadar } from "@/server/radar/run";
+import { opportunityInsight } from "@/lib/radar";
 import { diffDays, todayISO } from "@/lib/dates";
 import { formatBRL, formatDate, formatPoints } from "@/lib/format";
 
@@ -89,6 +91,35 @@ export async function computeAlerts(userId: string, alertDays: number): Promise<
         question: `Para a viagem "${trip.title}" (${trip.origin} → ${trip.destination}, ida em ${formatDate(trip.departDate)}), faltam ${formatPoints(trip.milesNeeded - balance)} ${acc?.unit ?? "milhas"} em ${programName}. Como consigo essas milhas a tempo com os pontos e cartões que tenho?`,
       });
     }
+  }
+
+  // Promoções vigentes do último radar que envolvem programas da pessoa.
+  const radar = await latestRadar(userId);
+  for (const o of radar?.opportunities ?? []) {
+    if (o.endsOn && o.endsOn < today) continue;
+    const num = (v: string | null) => (v == null ? null : Number(v));
+    const insight = opportunityInsight(
+      {
+        kind: o.kind,
+        fromSlug: o.fromSlug,
+        toSlug: o.toSlug,
+        bonusPct: num(o.bonusPct),
+        ratioFrom: num(o.ratioFrom),
+        ratioTo: num(o.ratioTo),
+        discountPct: num(o.discountPct),
+        pricePerThousandBrl: num(o.pricePerThousandBrl),
+      },
+      accounts.map((a) => ({ programSlug: a.programSlug, programName: a.programName, unit: a.unit, balance: a.balance, milheiroValueBrl: a.milheiroValueBrl })),
+    );
+    if (!insight.relevant || insight.tone === "desfavoravel") continue;
+    out.push({
+      id: `radar-${o.id}`,
+      severity: insight.tone === "favoravel" ? "warning" : "info",
+      title: `Promoção: ${o.title}`,
+      description: [o.endsOn ? `Válida até ${formatDate(o.endsOn)}.` : "Término não informado.", ...insight.lines].join(" "),
+      href: "/radar",
+      question: `Encontrei esta promoção no radar: "${o.title}"${o.endsOn ? `, válida até ${formatDate(o.endsOn)}` : ""}. Vale a pena aproveitar com os meus saldos? Quanto devo transferir ou comprar?`,
+    });
   }
 
   const rank = { critical: 0, warning: 1, info: 2 };

@@ -19,7 +19,7 @@ export const NAV: NavItem[] = [
   { href: "/cartoes", label: "Meus Cartões", icon: CreditCard },
   { href: "/programas", label: "Programas de Fidelidade", icon: Wallet },
   { href: "/milhas", label: "Minhas Milhas", icon: Plane },
-  { href: "/radar", label: "Radar de Oportunidades", icon: Radar, status: "dev" },
+  { href: "/radar", label: "Radar de Oportunidades", icon: Radar },
   { href: "/calculadoras", label: "Calculadoras", icon: Calculator },
   { href: "/viagens", label: "Planejador de Viagens", icon: Map, status: "parcial" },
   { href: "/agente", label: "Agente Inteligente", icon: Bot },
