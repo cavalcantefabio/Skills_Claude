@@ -57,6 +57,27 @@
       "when": 1794692889203,
       "tag": "0007_login_tentativas",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794694792113,
+      "tag": "0008_planejador_viagens",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794694792929,
+      "tag": "0009_planejador_viagens_dados",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794695686907,
+      "tag": "0010_agente_cotacao",
+      "breakpoints": true
     }
   ]
 }

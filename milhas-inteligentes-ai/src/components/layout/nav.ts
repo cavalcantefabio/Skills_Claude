@@ -21,7 +21,7 @@ export const NAV: NavItem[] = [
   { href: "/milhas", label: "Minhas Milhas", icon: Plane },
   { href: "/radar", label: "Radar de Oportunidades", icon: Radar },
   { href: "/calculadoras", label: "Calculadoras", icon: Calculator },
-  { href: "/viagens", label: "Planejador de Viagens", icon: Map, status: "parcial" },
+  { href: "/viagens", label: "Minhas Viagens", icon: Map },
   { href: "/agente", label: "Agente Inteligente", icon: Bot },
   { href: "/alertas", label: "Alertas", icon: Bell, status: "parcial" },
   { href: "/configuracoes", label: "Configurações", icon: Settings },

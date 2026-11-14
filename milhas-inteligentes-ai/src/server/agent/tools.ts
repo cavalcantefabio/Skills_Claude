@@ -5,7 +5,7 @@ import { z } from "zod";
 import { db, schema } from "@/server/db";
 import { listAccounts, listLots } from "@/server/services/accounts";
 import { listCards } from "@/server/services/cards";
-import { listTrips } from "@/server/services/trips";
+import { loadTripPlans, type TripWithPlan } from "@/server/services/trip-plan";
 import { computeAlerts } from "@/server/services/alerts";
 import { CREDIT_TYPES, transferReceived, type TransactionType } from "@/server/services/ledger";
 import { CALCULATORS, runCalculator, type CalculatorKey } from "@/lib/calculators";
@@ -172,29 +172,99 @@ const consultarCartoes = def({
   },
 });
 
+function planSummary(r: TripWithPlan) {
+  const { trip, plan } = r;
+  const best = plan.best;
+  return {
+    viagem_id: trip.id,
+    titulo: trip.title,
+    origem: trip.origin,
+    destino: trip.destination,
+    ida: trip.departDate,
+    volta: trip.returnDate,
+    tipo: trip.tripType,
+    flexibilidade_dias: trip.flexDays,
+    passageiros: trip.passengers,
+    cabine: trip.cabin,
+    situacao: trip.status,
+    orcamento_brl: trip.budgetBrl == null ? null : Number(trip.budgetBrl),
+    cotacoes: r.quotes.length,
+    so_estimativas: plan.onlyEstimates,
+    meta_milhas: plan.goalMiles,
+    melhor_programa: best?.programName ?? null,
+    disponivel: best?.available ?? null,
+    faltam: best?.remaining ?? null,
+    percentual_meta: best ? Math.round(best.progress * 100) : null,
+    custo_estimado_brl: plan.estimatedCostBrl,
+    estrategia: plan.recommendation.title,
+  };
+}
+
 const consultarViagens = def({
   name: "consultar_viagens",
   label: "Consultou suas viagens",
-  description: "Lista as viagens planejadas ou emitidas: origem, destino, datas, passageiros, cabine, programa escolhido, milhas necessárias e preço em dinheiro.",
+  description:
+    "Lista as viagens com o resumo do plano calculado pela plataforma: meta de milhas (das cotações), melhor programa, saldo disponível com transferências, quanto falta, percentual, custo estimado e estratégia. Use analisar_viagem para o detalhe.",
   input: z.object({}),
-  run: async (_, ctx) => {
-    const rows = await listTrips(ctx.userId);
+  run: async (_, ctx) => json({ viagens: (await loadTripPlans(ctx.userId)).map(planSummary) }),
+});
+
+const analisarViagem = def({
+  name: "analisar_viagem",
+  label: "Analisou o plano da viagem",
+  description:
+    "Plano completo de uma viagem, calculado pela plataforma a partir das cotações registradas (reais ou estimativas com fonte), dos saldos e das promoções vigentes do Radar: comparação de programas (meta, taxas, disponível, faltam, quanto cada milheiro rende, custo econômico), dinheiro, cenários de acúmulo e prazo, compra de pontos (só quando há preço), recomendação e próximas ações. Use estes números; não recalcule nem estime preços por conta própria.",
+  input: z.object({ viagem_id: uuidStr.describe("viagem_id de consultar_viagens.") }),
+  run: async ({ viagem_id }, ctx) => {
+    const [r] = await loadTripPlans(ctx.userId, viagem_id);
+    if (!r) return fail("Viagem não encontrada.");
+    const { plan } = r;
     return json({
-      viagens: rows.map(({ trip, programName }) => ({
-        titulo: trip.title,
-        origem: trip.origin,
-        destino: trip.destination,
-        ida: trip.departDate,
-        volta: trip.returnDate,
-        passageiros: trip.passengers,
-        cabine: trip.cabin,
-        situacao: trip.status,
+      ...planSummary(r),
+      premissas: [
+        "Pontos de banco entram pela paridade 1:1 sem bônus, a menos que haja promoção vigente no Radar; confirme a parceria no site.",
+        "Preços e milhas vêm só das cotações registradas; disponibilidade não é verificada.",
+        ...(plan.legsFactorNote ? [plan.legsFactorNote] : []),
+      ],
+      cotacoes: r.quotes.map(({ quote: q, programName }) => ({
+        tipo: q.kind,
+        origem_do_valor: q.certainty,
         programa: programName,
-        milhas_necessarias: trip.milesNeeded,
-        preco_dinheiro_brl: trip.cashPriceBrl == null ? null : Number(trip.cashPriceBrl),
-        datas_flexiveis: trip.flexibleDates,
-        observacoes: trip.notes,
+        site: q.label,
+        milhas_por_passageiro: q.milesPerPax,
+        taxas_por_passageiro_brl: q.taxesPerPaxBrl == null ? null : Number(q.taxesPerPaxBrl),
+        preco_por_passageiro_brl: q.cashPerPaxBrl == null ? null : Number(q.cashPerPaxBrl),
+        cobre: q.covers,
+        fonte: q.sourceUrl,
+        consultado_em: q.checkedOn,
       })),
+      dinheiro_total_brl: plan.cash?.totalBrl ?? null,
+      programas: plan.options.map((o) => ({
+        programa: o.programName,
+        cotacao_e_estimativa: o.quote.certainty === "estimativa",
+        meta_milhas: o.totalMiles,
+        taxas_total_brl: o.totalTaxesBrl,
+        saldo_direto: o.direct,
+        transferencias: o.transfers.map((t) => ({
+          de: t.programName,
+          pontos: t.balance,
+          recebe: t.received,
+          paridade: `${t.ratioFrom}:${t.ratioTo}`,
+          bonus_pct: t.bonusPct,
+          promocao: t.fromPromo,
+        })),
+        disponivel: o.available,
+        faltam: o.remaining,
+        acumulo_mensal_medio: Math.round(o.monthlyRate),
+        milheiro_rende_brl: o.valuePerThousandBrl,
+        custo_economico_brl: o.economicCostBrl,
+        compra: o.purchase,
+        viavel_antes_do_embarque: o.feasibleBeforeTrip,
+        cenarios: o.scenarios.map((c) => ({ nome: c.name, base: c.basis, meses: c.months, data: c.reachDate, a_tempo: c.onTime, custo_extra_brl: c.extraCostBrl, detalhe: c.description })),
+      })),
+      recomendacao: plan.recommendation,
+      orcamento: plan.budget,
+      proximas_acoes: plan.actions,
     });
   },
 });
@@ -245,7 +315,7 @@ const calcular = def({
 
 const LAUNCH_TYPES = ["acumulo", "bonus", "compra", "resgate", "expiracao", "ajuste"] as const;
 
-async function createAction(ctx: ToolContext, kind: "lancamento" | "transferencia" | "viagem", summary: string, payload: unknown) {
+async function createAction(ctx: ToolContext, kind: (typeof schema.agentActionKind.enumValues)[number], summary: string, payload: unknown) {
   const [a] = await db
     .insert(schema.agentActions)
     .values({ userId: ctx.userId, conversationId: ctx.conversationId, toolUseId: ctx.toolUseId, kind, summary, payload })
@@ -386,67 +456,136 @@ export const tripPayload = z.object({
   destination: z.string().min(2).max(60),
   departDate: isoDate.nullable(),
   returnDate: isoDate.nullable(),
+  tripType: z.enum(schema.tripType.enumValues).default("ida_volta"),
+  flexDays: z.number().int().min(0).max(30).default(0),
   passengers: z.number().int().min(1).max(9),
   cabin: z.enum(schema.cabinClass.enumValues),
-  programId: uuidStr.nullable(),
-  milesNeeded: z.number().int().positive().nullable(),
-  cashPriceBrl: z.number().nonnegative().nullable(),
+  budgetBrl: z.number().nonnegative().nullable().default(null),
   notes: z.string().max(1000).nullable(),
 });
 
 const proporViagem = def({
   name: "propor_viagem",
   label: "Preparou uma viagem",
-  description: "Propõe cadastrar uma viagem no Planejador de Viagens. Não grava nada: cria uma proposta para a pessoa confirmar.",
+  description:
+    "Propõe cadastrar uma viagem em Minhas Viagens. Não grava nada: cria uma proposta para a pessoa confirmar. Depois de confirmada, registre as cotações com propor_cotacao.",
   input: z.object({
     titulo: z.string().min(1).max(80),
-    origem: z.string().min(2).max(60).describe("Código IATA ou cidade."),
+    origem: z.string().min(2).max(60).describe("Aeroporto de origem (IATA) ou cidade."),
     destino: z.string().min(2).max(60),
     ida: isoDate.optional(),
     volta: isoDate.optional(),
+    tipo: z.enum(schema.tripType.enumValues).optional().describe("ida_volta (padrão) ou ida."),
+    flexibilidade_dias: z.number().int().min(0).max(30).optional(),
     passageiros: z.number().int().min(1).max(9).optional(),
     cabine: z.enum(schema.cabinClass.enumValues).optional(),
-    programa_id: uuidStr.optional().describe("programa_id de consultar_programas, se já houver programa escolhido."),
-    milhas_necessarias: z.number().int().positive().optional(),
-    preco_dinheiro_brl: z.number().nonnegative().optional(),
+    orcamento_brl: z.number().nonnegative().optional().describe("Orçamento total informado pela pessoa."),
     observacoes: z.string().max(1000).optional(),
   }),
   run: async (i, ctx) => {
     if (i.ida && i.volta && i.volta < i.ida) return fail("A volta deve ser depois da ida.");
-    let programId: string | null = null;
-    let programName: string | null = null;
-    if (i.programa_id) {
-      const acc = await ownAccount(ctx.userId, i.programa_id);
-      if (!acc) return fail("programa_id não encontrado.");
-      programId = acc.programId;
-      programName = acc.programName;
-    }
     const iata = (s: string) => (/^[a-z]{3}$/i.test(s) ? s.toUpperCase() : s);
+    const tipo = i.tipo ?? "ida_volta";
     const payload: z.infer<typeof tripPayload> = {
       title: i.titulo,
       origin: iata(i.origem),
       destination: iata(i.destino),
       departDate: i.ida ?? null,
-      returnDate: i.volta ?? null,
+      returnDate: tipo === "ida" ? null : (i.volta ?? null),
+      tripType: tipo,
+      flexDays: i.flexibilidade_dias ?? 0,
       passengers: i.passageiros ?? 1,
       cabin: i.cabine ?? "economica",
-      programId,
-      milesNeeded: i.milhas_necessarias ?? null,
-      cashPriceBrl: i.preco_dinheiro_brl ?? null,
+      budgetBrl: i.orcamento_brl ?? null,
       notes: i.observacoes ?? null,
     };
     const summary = [
       `Viagem "${payload.title}": ${payload.origin} → ${payload.destination}`,
       payload.departDate && `ida ${formatDate(payload.departDate)}`,
       payload.returnDate && `volta ${formatDate(payload.returnDate)}`,
+      payload.flexDays ? `±${payload.flexDays} dias` : null,
       `${payload.passengers} passageiro(s), ${CABIN_LABEL[payload.cabin]}`,
-      programName && `emissão com ${programName}`,
-      payload.milesNeeded && `${formatPoints(payload.milesNeeded)} milhas`,
-      payload.cashPriceBrl != null && `${formatBRL(payload.cashPriceBrl)} em dinheiro`,
+      payload.budgetBrl != null && `orçamento ${formatBRL(payload.budgetBrl)}`,
     ]
       .filter(Boolean)
       .join(" · ");
     return createAction(ctx, "viagem", summary, payload);
+  },
+});
+
+export const quotePayload = z.object({
+  tripId: uuidStr,
+  kind: z.enum(schema.quoteKind.enumValues),
+  certainty: z.enum(schema.quoteCertainty.enumValues),
+  programId: uuidStr.nullable(),
+  label: z.string().max(80).nullable(),
+  milesPerPax: z.number().int().positive().nullable(),
+  taxesPerPaxBrl: z.number().nonnegative().nullable(),
+  cashPerPaxBrl: z.number().positive().nullable(),
+  covers: z.enum(schema.tripType.enumValues),
+  sourceUrl: z
+    .string()
+    .url()
+    .refine((u) => /^https?:\/\//i.test(u))
+    .nullable(),
+  checkedOn: isoDate,
+});
+
+const proporCotacao = def({
+  name: "propor_cotacao",
+  label: "Preparou uma cotação",
+  description:
+    "Propõe registrar uma cotação numa viagem: milhas por passageiro (+ taxas) num programa, ou preço em dinheiro por passageiro. Use origem_do_valor 'real' só para valores que a pessoa informou ter consultado; qualquer outro valor é 'estimativa' e exige fonte_url. Nunca invente valores. Não grava nada até a pessoa confirmar.",
+  input: z.object({
+    viagem_id: uuidStr,
+    tipo: z.enum(schema.quoteKind.enumValues),
+    origem_do_valor: z.enum(schema.quoteCertainty.enumValues),
+    programa_id: uuidStr.optional().describe("Para milhas: programa_id de consultar_programas."),
+    site: z.string().max(80).optional().describe("Para dinheiro: companhia ou site."),
+    milhas_por_passageiro: z.number().int().positive().optional(),
+    taxas_por_passageiro_brl: z.number().nonnegative().optional(),
+    preco_por_passageiro_brl: z.number().positive().optional(),
+    cobre: z.enum(schema.tripType.enumValues).optional().describe("ida_volta (padrão) ou ida (um trecho)."),
+    fonte_url: z.string().url().optional(),
+    consultado_em: isoDate.optional(),
+  }),
+  run: async (i, ctx) => {
+    const [trip] = await loadTripPlans(ctx.userId, i.viagem_id);
+    if (!trip) return fail("viagem_id não encontrado.");
+    if (i.origem_do_valor === "estimativa" && !i.fonte_url) return fail("Estimativas precisam de fonte_url.");
+    if (i.fonte_url && !/^https?:\/\//i.test(i.fonte_url)) return fail("fonte_url precisa ser http(s).");
+    let programId: string | null = null;
+    let programName = "";
+    if (i.tipo === "milhas") {
+      if (!i.programa_id || !i.milhas_por_passageiro) return fail("Para milhas, informe programa_id e milhas_por_passageiro.");
+      const acc = await ownAccount(ctx.userId, i.programa_id);
+      if (!acc) return fail("programa_id não encontrado.");
+      programId = acc.programId;
+      programName = acc.programName;
+    } else if (!i.preco_por_passageiro_brl) {
+      return fail("Para dinheiro, informe preco_por_passageiro_brl.");
+    }
+    const today = todayISO();
+    const checkedOn = i.consultado_em && i.consultado_em <= today ? i.consultado_em : today;
+    const payload: z.infer<typeof quotePayload> = {
+      tripId: trip.trip.id,
+      kind: i.tipo,
+      certainty: i.origem_do_valor,
+      programId,
+      label: i.tipo === "dinheiro" ? (i.site ?? null) : null,
+      milesPerPax: i.tipo === "milhas" ? i.milhas_por_passageiro! : null,
+      taxesPerPaxBrl: i.tipo === "milhas" ? (i.taxas_por_passageiro_brl ?? null) : null,
+      cashPerPaxBrl: i.tipo === "dinheiro" ? i.preco_por_passageiro_brl! : null,
+      covers: i.cobre ?? "ida_volta",
+      sourceUrl: i.fonte_url ?? null,
+      checkedOn,
+    };
+    const valor =
+      i.tipo === "milhas"
+        ? `${formatPoints(payload.milesPerPax!)} ${programName} por passageiro${payload.taxesPerPaxBrl != null ? ` + ${formatBRL(payload.taxesPerPaxBrl)} de taxas` : ""}`
+        : `${formatBRL(payload.cashPerPaxBrl!)} por passageiro${payload.label ? ` (${payload.label})` : ""}`;
+    const summary = `Cotação ${payload.certainty === "real" ? "real" : "estimada"} para "${trip.trip.title}": ${valor} · ${payload.covers === "ida" ? "um trecho" : "ida e volta"}`;
+    return createAction(ctx, "cotacao", summary, payload);
   },
 });
 
@@ -461,11 +600,13 @@ const TOOLS: ToolDef<any>[] = [
   consultarMovimentacoes,
   consultarCartoes,
   consultarViagens,
+  analisarViagem,
   consultarAlertas,
   calcular,
   proporLancamento,
   proporTransferencia,
   proporViagem,
+  proporCotacao,
 ];
 
 export const TOOL_LABELS: Record<string, string> = Object.fromEntries(TOOLS.map((t) => [t.name, t.label]));

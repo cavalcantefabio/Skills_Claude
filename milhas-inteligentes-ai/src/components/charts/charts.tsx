@@ -11,6 +11,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  ReferenceLine,
 } from "recharts";
 import { Table2, LineChart as LineIcon } from "lucide-react";
 import { Card, CardBody, CardHeader, cx, td, th } from "@/components/ui";
@@ -275,5 +276,22 @@ export function RankedBars({
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Evolução do potencial acumulado frente à meta (linha de referência). */
+export function GoalChart({ data, goal, unit }: { data: { month: string; value: number }[]; goal: number; unit: string }) {
+  const series: Series[] = [{ key: "value", name: "Potencial acumulado", slot: 0, unit }];
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={data} margin={{ top: 16, right: 12, bottom: 0, left: 0 }}>
+        <CartesianGrid vertical={false} stroke="var(--grid)" />
+        <XAxis dataKey="month" tickFormatter={monthLabel} {...axisProps} tickMargin={8} minTickGap={12} />
+        <YAxis {...axisProps} axisLine={false} width={64} tickFormatter={(v) => formatCompact(v)} domain={[0, (max: number) => Math.max(max, goal) * 1.05]} />
+        <Tooltip cursor={{ stroke: "var(--axis)", strokeWidth: 1 }} content={(p) => <ChartTooltip {...p} kind="points" series={series} />} />
+        <ReferenceLine y={goal} stroke="var(--ink-2)" strokeWidth={1} label={{ value: `Meta ${formatCompact(goal)}`, position: "insideTopRight", fill: "var(--ink-2)", fontSize: 11 }} />
+        <Line dataKey="value" name="Potencial acumulado" type="linear" stroke={seriesColor(0)} strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--chart-surface)" }} isAnimationActive={false} />
+      </LineChart>
+    </ResponsiveContainer>
   );
 }

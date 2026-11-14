@@ -2,6 +2,37 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.9.0] - 2026-11-15 (Etapa complementar: Planejador inteligente de viagens)
+
+### Adicionado
+- **Minhas Viagens** (antes "Planejador de Viagens"): painel por viagem com destino, meta de milhas,
+  saldo disponível, milhas restantes, percentual, custo estimado, estratégia recomendada e próximas ações.
+- **Plano da viagem**: comparação de programas (meta, taxas, disponível com transferências, faltam,
+  quanto rende cada milheiro, custo econômico, viável antes do embarque), dinheiro x milhas, cenários
+  de acúmulo com prazo, simulador de gasto extra no cartão e compra mensal, evolução da meta e
+  promoções do Radar ligadas à viagem.
+- **Cotações** por passageiro, reais (consultadas) ou estimativas (com fonte obrigatória). Cotações
+  reais têm prioridade sobre estimativas do mesmo programa.
+- **Pesquisar referências (IA)**: busca na web (Claude Sonnet 5.5) salva estimativas com fonte;
+  limite diário `TRIP_RESEARCH_DAILY_LIMIT` (padrão 5).
+- Campos da viagem: só ida ou ida e volta, flexibilidade em dias, orçamento, programas considerados,
+  antecedência do alerta e aviso de promoções.
+- **Alertas** de meta em risco, promoção para a viagem e cotações só estimadas.
+- **Agente MILHAS AI**: `analisar_viagem`, `consultar_viagens` com plano, `propor_viagem` com os novos
+  campos e `propor_cotacao` (confirmação na tela); regras de viagem no prompt.
+- Tabelas `trip_quotes` e `trip_accounts`; migrações 0008 a 0010 (a 0009 converte meta e preço antigos
+  em cotações reais).
+
+### Corrigido
+- Transbordo horizontal no celular em tabelas dentro de grades (inclui a página do programa) e texto
+  oculto de acessibilidade que escapava da área de rolagem.
+
+### Testes
+- 13 testes do motor de planejamento, 2 da pesquisa de referências e 1 de integração com o agente
+  (99 no total). Teste ponta a ponta com 43 verificações.
+- Teste real: agente respondeu às perguntas sobre Orlando com os números do plano; pesquisa de
+  referências trouxe 8 estimativas com fonte por US$ 0,17.
+
 ## [0.8.0] - 2026-11-15 (Ciclo de melhoria contínua 2)
 
 ### Adicionado

@@ -157,17 +157,37 @@ describe("propostas e confirmação", () => {
     expect(await balance(livelo)).toBe(29_000);
   });
 
-  it("propor_viagem cadastra a viagem só após confirmar", async () => {
+  it("propor_viagem e propor_cotacao só gravam após confirmar, e analisar_viagem usa a cotação", async () => {
     const out = await tools.executeTool(
       "propor_viagem",
-      { titulo: "Teste", origem: "gru", destino: "lis", ida: "2027-05-01", programa_id: smiles, milhas_necessarias: 90000 },
+      { titulo: "Teste", origem: "gru", destino: "lis", ida: "2027-05-01", passageiros: 2, orcamento_brl: 5000, flexibilidade_dias: 3 },
       ctx("toolu_trip"),
     );
     expect((await db.select().from(schema.trips)).length).toBe(0);
     await decide.decideAction(userId, out.actionId!, "confirmar");
     const [trip] = await db.select().from(schema.trips);
     expect(trip.origin).toBe("GRU");
-    expect(trip.milesNeeded).toBe(90_000);
+    expect(trip.flexDays).toBe(3);
+    expect(Number(trip.budgetBrl)).toBe(5000);
+
+    const noSource = await tools.executeTool(
+      "propor_cotacao",
+      { viagem_id: trip.id, tipo: "milhas", origem_do_valor: "estimativa", programa_id: smiles, milhas_por_passageiro: 45000 },
+      ctx("toolu_q0"),
+    );
+    expect(noSource.isError).toBe(true); // estimativa sem fonte é recusada
+
+    const q = await tools.executeTool(
+      "propor_cotacao",
+      { viagem_id: trip.id, tipo: "milhas", origem_do_valor: "real", programa_id: smiles, milhas_por_passageiro: 45000, taxas_por_passageiro_brl: 300 },
+      ctx("toolu_q1"),
+    );
+    expect((await db.select().from(schema.tripQuotes)).length).toBe(0);
+    await decide.decideAction(userId, q.actionId!, "confirmar");
+    const plan = JSON.parse((await tools.executeTool("analisar_viagem", { viagem_id: trip.id }, ctx("toolu_a"))).content);
+    expect(plan.meta_milhas).toBe(90_000); // 45 mil × 2 passageiros
+    expect(plan.programas[0].taxas_total_brl).toBe(600);
+    expect(plan.premissas[0]).toMatch(/paridade 1:1/);
   });
 });
 

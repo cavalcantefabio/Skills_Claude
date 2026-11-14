@@ -1,6 +1,6 @@
 import "server-only";
 import { listAccounts, listLots } from "@/server/services/accounts";
-import { listTrips } from "@/server/services/trips";
+import { loadTripPlans } from "@/server/services/trip-plan";
 import { latestRadar } from "@/server/radar/run";
 import { opportunityInsight } from "@/lib/radar";
 import { diffDays, todayISO } from "@/lib/dates";
@@ -22,7 +22,7 @@ export type Alert = {
  */
 export async function computeAlerts(userId: string, alertDays: number): Promise<Alert[]> {
   const today = todayISO();
-  const [accounts, lots, trips] = await Promise.all([listAccounts(userId, alertDays), listLots(userId), listTrips(userId)]);
+  const [accounts, lots] = await Promise.all([listAccounts(userId, alertDays), listLots(userId)]);
   const out: Alert[] = [];
 
   for (const l of lots) {
@@ -75,20 +75,43 @@ export async function computeAlerts(userId: string, alertDays: number): Promise<
     }
   }
 
-  const byProgram = new Map(accounts.map((a) => [a.programId, a]));
-  for (const { trip, programName } of trips) {
-    if (trip.status !== "planejada" || !trip.departDate || !trip.milesNeeded || !trip.programId) continue;
-    const d = diffDays(today, trip.departDate);
-    const acc = byProgram.get(trip.programId);
-    const balance = acc?.balance ?? 0;
-    if (d >= 0 && d <= 180 && balance < trip.milesNeeded) {
+  // Viagens: alertas a partir do plano (meta, promoções e cotações).
+  const plans = await loadTripPlans(userId);
+  for (const { trip, plan } of plans) {
+    if (trip.status !== "planejada") continue;
+    const d = trip.departDate ? diffDays(today, trip.departDate) : null;
+    if (d != null && d < 0) continue;
+    const best = plan.best;
+    const href = `/viagens/${trip.id}`;
+    if (best && best.remaining > 0 && d != null && d <= trip.alertDaysBefore) {
       out.push({
-        id: `trip-${trip.id}`,
-        severity: d <= 60 ? "warning" : "info",
-        title: `Faltam ${formatPoints(trip.milesNeeded - balance)} ${acc?.unit ?? "milhas"} para "${trip.title}"`,
-        description: `Embarque em ${d} dia(s) (${formatDate(trip.departDate)}), emissão planejada com ${programName}.`,
-        href: "/viagens",
-        question: `Para a viagem "${trip.title}" (${trip.origin} → ${trip.destination}, ida em ${formatDate(trip.departDate)}), faltam ${formatPoints(trip.milesNeeded - balance)} ${acc?.unit ?? "milhas"} em ${programName}. Como consigo essas milhas a tempo com os pontos e cartões que tenho?`,
+        id: `trip-goal-${trip.id}`,
+        severity: best.feasibleBeforeTrip === false ? "critical" : "warning",
+        title: `Meta da viagem "${trip.title}": faltam ${formatPoints(best.remaining)} ${best.unit}`,
+        description: `Embarque em ${d} dia(s) (${formatDate(trip.departDate)}). ${best.feasibleBeforeTrip === false ? "No ritmo atual a meta não fecha a tempo." : "Acompanhe a evolução da meta."}`,
+        href,
+        question: `Para a viagem "${trip.title}" (${trip.origin} → ${trip.destination}), faltam ${formatPoints(best.remaining)} ${best.unit} em ${best.programName} e o embarque é em ${d} dias. Como atingir a meta gastando menos? Vale comprar pontos?`,
+      });
+    }
+    const promo = best?.transfers.find((t) => t.fromPromo);
+    if (trip.watchPromotions && best && promo) {
+      out.push({
+        id: `trip-promo-${trip.id}`,
+        severity: "warning",
+        title: `Promoção para a viagem "${trip.title}"`,
+        description: `${promo.fromPromo}: ${formatPoints(promo.balance)} ${promo.programName} renderiam ${formatPoints(promo.received)} ${best.unit}. Confirme a emissão antes de transferir.`,
+        href,
+        question: `Há uma promoção ("${promo.fromPromo}") que ajuda na viagem "${trip.title}". Devo transferir agora? Quanto?`,
+      });
+    }
+    if (plan.onlyEstimates && d != null && d <= 120) {
+      out.push({
+        id: `trip-est-${trip.id}`,
+        severity: "info",
+        title: `Confirme os preços da viagem "${trip.title}"`,
+        description: "O plano usa só estimativas. Consulte o site do programa e registre uma cotação real.",
+        href,
+        question: `Quais cotações devo conferir para a viagem "${trip.title}" antes de decidir?`,
       });
     }
   }
