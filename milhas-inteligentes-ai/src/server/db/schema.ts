@@ -58,6 +58,10 @@ export const calculatorKind = pgEnum("calculator_kind", [
 ]);
 
 export const tripStatus = pgEnum("trip_status", ["planejada", "emitida", "concluida", "cancelada"]);
+export const tripType = pgEnum("trip_type", ["ida_volta", "ida"]);
+export const quoteKind = pgEnum("quote_kind", ["milhas", "dinheiro"]);
+/** "real": valor que a pessoa consultou; "estimativa": referência pesquisada (com fonte). */
+export const quoteCertainty = pgEnum("quote_certainty", ["real", "estimativa"]);
 export const cabinClass = pgEnum("cabin_class", ["economica", "premium", "executiva", "primeira"]);
 
 const timestamps = {
@@ -324,6 +328,15 @@ export const trips = pgTable(
     /** Espaço reservado para metadados do futuro agente de IA (fontes, buscas, scores). */
     aiContext: jsonb("ai_context"),
     flexibleDates: boolean("flexible_dates").notNull().default(false),
+    tripType: tripType("trip_type").notNull().default("ida_volta"),
+    /** Flexibilidade em dias para mais ou para menos (0 = datas fixas). */
+    flexDays: smallint("flex_days").notNull().default(0),
+    /** Orçamento total estimado da viagem (R$). */
+    budgetBrl: numeric("budget_brl", { precision: 12, scale: 2 }),
+    /** Avisar se a meta não estiver garantida a N dias do embarque. */
+    alertDaysBefore: smallint("alert_days_before").notNull().default(60),
+    /** Avisar promoções do Radar para os programas desta viagem. */
+    watchPromotions: boolean("watch_promotions").notNull().default(true),
     ...timestamps,
   },
   (t) => [
@@ -332,6 +345,9 @@ export const trips = pgTable(
     check("trips_dates_chk", sql`${t.returnDate} is null or ${t.departDate} is null or ${t.returnDate} >= ${t.departDate}`),
     check("trips_miles_chk", sql`${t.milesNeeded} is null or ${t.milesNeeded} > 0`),
     check("trips_cash_chk", sql`${t.cashPriceBrl} is null or ${t.cashPriceBrl} >= 0`),
+    check("trips_flex_chk", sql`${t.flexDays} between 0 and 30`),
+    check("trips_budget_chk", sql`${t.budgetBrl} is null or ${t.budgetBrl} >= 0`),
+    check("trips_alert_chk", sql`${t.alertDaysBefore} between 0 and 365`),
   ],
 );
 
@@ -538,4 +554,63 @@ export const loginAttempts = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("login_attempts_email_idx").on(t.email, t.createdAt), index("login_attempts_ip_idx").on(t.ip, t.createdAt)],
+);
+
+/* ------------------------------------------------------------------ */
+/* Planejador inteligente de viagens                                   */
+/* ------------------------------------------------------------------ */
+
+/** Programas da pessoa considerados na viagem. Sem linhas = todos os programas. */
+export const tripAccounts = pgTable(
+  "trip_accounts",
+  {
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    accountId: uuid("account_id")
+      .notNull()
+      .references(() => loyaltyAccounts.id, { onDelete: "cascade" }),
+  },
+  (t) => [uniqueIndex("trip_accounts_pk").on(t.tripId, t.accountId)],
+);
+
+/**
+ * Cotações da viagem: quanto custa em milhas (por programa) ou em dinheiro, por passageiro.
+ * Toda cotação diz se é real (consultada pela pessoa) ou estimativa (com fonte).
+ */
+export const tripQuotes = pgTable(
+  "trip_quotes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: quoteKind("kind").notNull(),
+    certainty: quoteCertainty("certainty").notNull(),
+    programId: uuid("program_id").references(() => programs.id, { onDelete: "cascade" }),
+    /** Companhia, site ou agência (cotações em dinheiro). */
+    label: text("label"),
+    milesPerPax: integer("miles_per_pax"),
+    taxesPerPaxBrl: numeric("taxes_per_pax_brl", { precision: 10, scale: 2 }),
+    cashPerPaxBrl: numeric("cash_per_pax_brl", { precision: 12, scale: 2 }),
+    /** A cotação cobre só ida ("ida") ou ida e volta ("ida_volta"). */
+    covers: tripType("covers").notNull().default("ida_volta"),
+    sourceUrl: text("source_url"),
+    checkedOn: date("checked_on").notNull(),
+    notes: text("notes"),
+    ...timestamps,
+  },
+  (t) => [
+    index("trip_quotes_trip_idx").on(t.tripId),
+    check(
+      "trip_quotes_kind_chk",
+      sql`(${t.kind} = 'milhas' and ${t.programId} is not null and ${t.milesPerPax} > 0)
+        or (${t.kind} = 'dinheiro' and ${t.cashPerPaxBrl} > 0)`,
+    ),
+    check("trip_quotes_taxes_chk", sql`${t.taxesPerPaxBrl} is null or ${t.taxesPerPaxBrl} >= 0`),
+    check("trip_quotes_source_chk", sql`${t.sourceUrl} is null or ${t.sourceUrl} ~* '^https?://'`),
+  ],
 );
