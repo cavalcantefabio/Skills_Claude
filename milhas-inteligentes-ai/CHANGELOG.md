@@ -2,6 +2,15 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.4.0] - 2026-11-14
+
+### Adicionado
+- Custo do agente na tela: por conversa, no mês, desde o início, e mensagens usadas no dia.
+- Tabela `agent_usage` com tokens e custo estimado por resposta (o total do mês não muda ao excluir
+  conversas). A migração 0005 importa o uso das conversas anteriores.
+- `src/lib/pricing.ts`: tabela de preços por modelo (inclui modelos de fallback) e cálculo do custo
+  com leitura e escrita de cache.
+
 ## [0.3.1] - 2026-11-14
 
 ### Adicionado

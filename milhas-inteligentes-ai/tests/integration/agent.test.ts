@@ -267,6 +267,29 @@ describe("loop do agente (cliente falso da API)", () => {
     expect(lastSystem.content[0].text).toMatch(/dólar.*R\$ 5,40/);
   });
 
+  it("registra custo por resposta e mantém o total do mês ao excluir a conversa", async () => {
+    const { getAgentUsageSummary } = await import("@/server/agent/usage");
+    const before = await getAgentUsageSummary(userId);
+    const conv = await run.createConversation(userId, "custo");
+    const { client } = fakeClient([{ stop_reason: "end_turn", content: [{ type: "text", text: "ok" }] }]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await run.runAgentTurn({ client: client as any, userId, alertDays: 90, conversationId: conv.id, text: "custo", emit: () => {} });
+
+    const rows = await db.select().from(schema.agentUsage).where(eq(schema.agentUsage.conversationId, conv.id));
+    expect(rows).toHaveLength(1);
+    // Resposta simulada: 1 token de entrada (US$ 4/M) + 1 de saída (US$ 20/M).
+    expect(Number(rows[0].costUsd)).toBeCloseTo(0.000024, 9);
+
+    const after = await getAgentUsageSummary(userId);
+    expect(after.monthResponses).toBe(before.monthResponses + 1);
+    expect(after.byConversation.get(conv.id)).toBeCloseTo(0.000024, 9);
+
+    await db.delete(schema.agentConversations).where(eq(schema.agentConversations.id, conv.id));
+    const [kept] = await db.select().from(schema.agentUsage).where(eq(schema.agentUsage.id, rows[0].id));
+    expect(kept.conversationId).toBeNull();
+    expect((await getAgentUsageSummary(userId)).monthResponses).toBe(after.monthResponses);
+  });
+
   it("recusa (refusal) encerra o turno com aviso", async () => {
     const conv = await run.createConversation(userId, "x");
     const { client } = fakeClient([{ stop_reason: "refusal", content: [] }]);

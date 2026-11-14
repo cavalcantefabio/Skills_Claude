@@ -437,3 +437,26 @@ export const agentActions = pgTable(
   },
   (t) => [index("agent_actions_conv_idx").on(t.conversationId), index("agent_actions_user_idx").on(t.userId, t.status)],
 );
+
+/**
+ * Registro de uso da API por resposta do agente, com custo estimado em US$ calculado na hora.
+ * Fica separado das mensagens para que o total do mês não mude ao excluir conversas.
+ */
+export const agentUsage = pgTable(
+  "agent_usage",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    conversationId: uuid("conversation_id").references(() => agentConversations.id, { onDelete: "set null" }),
+    model: text("model").notNull(),
+    inputTokens: integer("input_tokens").notNull().default(0),
+    outputTokens: integer("output_tokens").notNull().default(0),
+    cacheReadTokens: integer("cache_read_tokens").notNull().default(0),
+    cacheWriteTokens: integer("cache_write_tokens").notNull().default(0),
+    costUsd: numeric("cost_usd", { precision: 12, scale: 6 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("agent_usage_user_date_idx").on(t.userId, t.createdAt), index("agent_usage_conv_idx").on(t.conversationId)],
+);
