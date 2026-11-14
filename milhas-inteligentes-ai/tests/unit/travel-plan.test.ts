@@ -146,6 +146,28 @@ describe("buildTripPlan: decisões e transparência", () => {
     expect(plan.actions.some((a) => /só estimativas/.test(a.text))).toBe(true);
   });
 
+  it("uma estimativa menor nunca substitui a cotação real do mesmo programa", () => {
+    const plan = buildTripPlan({
+      trip: { ...trip, passengers: 1 },
+      quotes: [
+        q({ programId: "P_LATAM", milesPerPax: 110_000, certainty: "real" }),
+        q({ programId: "P_LATAM", milesPerPax: 44_000, covers: "ida", certainty: "estimativa", sourceUrl: "https://x" }),
+        q({ kind: "dinheiro", cashPerPaxBrl: 4800, certainty: "real" }),
+        q({ kind: "dinheiro", cashPerPaxBrl: 2400, certainty: "estimativa", sourceUrl: "https://x" }),
+      ],
+      accounts: [latam],
+      promos: [],
+      today,
+    });
+    expect(plan.best!.totalMiles).toBe(110_000);
+    expect(plan.best!.quote.certainty).toBe("real");
+    expect(plan.cash!.totalBrl).toBe(4800);
+    // Sem cotação real, a estimativa é usada (e marcada).
+    const onlyEst = buildTripPlan({ trip: { ...trip, passengers: 1 }, quotes: [q({ programId: "P_LATAM", milesPerPax: 44_000, covers: "ida", certainty: "estimativa", sourceUrl: "https://x" })], accounts: [latam], promos: [], today });
+    expect(onlyEst.best!.totalMiles).toBe(88_000);
+    expect(onlyEst.onlyEstimates).toBe(true);
+  });
+
   it("prioriza o programa viável antes do embarque", () => {
     const plan = buildTripPlan({
       trip: { ...trip, passengers: 1, tripType: "ida" },

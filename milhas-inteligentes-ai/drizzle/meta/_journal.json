@@ -71,6 +71,13 @@
       "when": 1794694792929,
       "tag": "0009_planejador_viagens_dados",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794695686907,
+      "tag": "0010_agente_cotacao",
+      "breakpoints": true
     }
   ]
 }

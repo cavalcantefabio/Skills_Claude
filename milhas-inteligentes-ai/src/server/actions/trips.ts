@@ -195,3 +195,28 @@ export async function deleteQuote(formData: FormData): Promise<ActionState> {
   revalidatePath("/viagens");
   return { ok: true };
 }
+
+export async function researchTripAction(tripId: string): Promise<{ ok: boolean; message: string }> {
+  const user = await requireUser();
+  const { agentEnabled, getAnthropic } = await import("@/server/agent/client");
+  const { researchTrip } = await import("@/server/trips/research");
+  const { env } = await import("@/server/env");
+  const { DomainError } = await import("@/server/services/errors");
+  const { formatUSD } = await import("@/lib/pricing");
+  if (!agentEnabled()) return { ok: false, message: "A pesquisa usa a API do Claude, que não está configurada." };
+  const id = z.string().uuid().safeParse(tripId);
+  if (!id.success) return { ok: false, message: "Viagem inválida." };
+  try {
+    const r = await researchTrip({ client: getAnthropic(), userId: user.id, tripId: id.data, dailyLimit: env.TRIP_RESEARCH_DAILY_LIMIT });
+    revalidatePath(`/viagens/${id.data}`);
+    revalidatePath("/viagens");
+    return {
+      ok: true,
+      message: `${r.found} referência(s) salva(s) como estimativa. Custo: ${formatUSD(r.costUsd)}. ${r.summary}`.trim(),
+    };
+  } catch (e) {
+    if (e instanceof DomainError) return { ok: false, message: e.message };
+    console.error("trip research failed", e);
+    return { ok: false, message: "Não foi possível pesquisar agora. Tente novamente." };
+  }
+}

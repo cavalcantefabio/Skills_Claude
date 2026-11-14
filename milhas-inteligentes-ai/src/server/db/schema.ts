@@ -389,7 +389,7 @@ export const tripsRelations = relations(trips, ({ one }) => ({
 /* ------------------------------------------------------------------ */
 
 export const agentRole = pgEnum("agent_role", ["user", "assistant", "system"]);
-export const agentActionKind = pgEnum("agent_action_kind", ["lancamento", "transferencia", "viagem"]);
+export const agentActionKind = pgEnum("agent_action_kind", ["lancamento", "transferencia", "viagem", "cotacao"]);
 export const agentActionStatus = pgEnum("agent_action_status", ["pendente", "confirmada", "recusada", "falhou"]);
 
 export const agentConversations = pgTable(

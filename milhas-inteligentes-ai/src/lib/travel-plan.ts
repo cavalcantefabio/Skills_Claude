@@ -161,19 +161,24 @@ export function buildTripPlan(input: {
   const pax = Math.max(1, trip.passengers);
   const banks = accounts.filter((a) => a.kind === "banco");
 
-  // Melhor cotação em dinheiro (menor total).
+  // Cotações reais (consultadas pela pessoa) sempre têm prioridade sobre estimativas:
+  // uma referência "a partir de" nunca substitui um valor real consultado.
+  const realFirst = (a: QuoteLite, b: QuoteLite) => Number(a.certainty === "estimativa") - Number(b.certainty === "estimativa");
+
+  // Melhor cotação em dinheiro: real primeiro, depois o menor total.
   const cashQuotes = quotes
     .filter((q) => q.kind === "dinheiro" && q.cashPerPaxBrl != null)
     .map((q) => ({ quote: q, totalBrl: q.cashPerPaxBrl! * pax * legsFactor(trip, q) }))
-    .sort((a, b) => a.totalBrl - b.totalBrl);
+    .sort((a, b) => realFirst(a.quote, b.quote) || a.totalBrl - b.totalBrl);
   const cash = cashQuotes[0] ?? null;
 
-  // Para cada programa, a cotação com menos milhas.
+  // Para cada programa: cotação real primeiro, depois a com menos milhas.
   const byProgram = new Map<string, QuoteLite>();
   for (const q of quotes) {
     if (q.kind !== "milhas" || !q.programId || !q.milesPerPax) continue;
     const cur = byProgram.get(q.programId);
-    if (!cur || q.milesPerPax * legsFactor(trip, q) < cur.milesPerPax! * legsFactor(trip, cur)) byProgram.set(q.programId, q);
+    const better = !cur || realFirst(q, cur) < 0 || (realFirst(q, cur) === 0 && q.milesPerPax * legsFactor(trip, q) < cur.milesPerPax! * legsFactor(trip, cur));
+    if (better) byProgram.set(q.programId, q);
   }
 
   const options: ProgramOption[] = [];

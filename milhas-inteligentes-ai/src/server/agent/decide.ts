@@ -3,7 +3,7 @@ import { and, eq, isNull, or } from "drizzle-orm";
 import { db, schema } from "@/server/db";
 import { recordTransaction, transferPoints } from "@/server/services/ledger";
 import { DomainError } from "@/server/services/errors";
-import { launchPayload, transferPayload, tripPayload } from "./tools";
+import { launchPayload, quotePayload, transferPayload, tripPayload } from "./tools";
 
 /**
  * Executa (ou recusa) uma proposta do agente. Só roda por ação explícita da pessoa.
@@ -48,25 +48,48 @@ export async function decideAction(userId: string, actionId: string, decision: "
           },
           tx,
         );
-      } else {
+      } else if (a.kind === "viagem") {
         const p = tripPayload.parse(a.payload);
+        await tx.insert(schema.trips).values({
+          userId,
+          ...p,
+          flexibleDates: p.flexDays > 0,
+          budgetBrl: p.budgetBrl != null ? p.budgetBrl.toFixed(2) : null,
+        });
+      } else {
+        const p = quotePayload.parse(a.payload);
+        const [trip] = await tx
+          .select({ id: schema.trips.id })
+          .from(schema.trips)
+          .where(and(eq(schema.trips.id, p.tripId), eq(schema.trips.userId, userId)));
+        if (!trip) throw new DomainError("A viagem desta cotação não existe mais.");
         if (p.programId) {
           const [prog] = await tx
             .select({ id: schema.programs.id })
             .from(schema.programs)
             .where(and(eq(schema.programs.id, p.programId), or(isNull(schema.programs.ownerUserId), eq(schema.programs.ownerUserId, userId))));
-          if (!prog) throw new DomainError("Programa da viagem não encontrado.");
+          if (!prog) throw new DomainError("Programa da cotação não encontrado.");
         }
-        await tx.insert(schema.trips).values({
+        await tx.insert(schema.tripQuotes).values({
           userId,
-          ...p,
-          cashPriceBrl: p.cashPriceBrl != null ? p.cashPriceBrl.toFixed(2) : null,
+          tripId: p.tripId,
+          kind: p.kind,
+          certainty: p.certainty,
+          programId: p.programId,
+          label: p.label,
+          milesPerPax: p.milesPerPax,
+          taxesPerPaxBrl: p.taxesPerPaxBrl != null ? p.taxesPerPaxBrl.toFixed(2) : null,
+          cashPerPaxBrl: p.cashPerPaxBrl != null ? p.cashPerPaxBrl.toFixed(2) : null,
+          covers: p.covers,
+          sourceUrl: p.sourceUrl,
+          checkedOn: p.checkedOn,
+          notes: "Registrada pelo agente com sua confirmação",
         });
       }
     } catch (e) {
       if (e instanceof DomainError) return (await finish("falhou", e.message))[0];
       throw e;
     }
-    return (await finish("confirmada", { lancamento: "Movimentação registrada.", transferencia: "Transferência registrada.", viagem: "Viagem cadastrada." }[a.kind]))[0];
+    return (await finish("confirmada", { lancamento: "Movimentação registrada.", transferencia: "Transferência registrada.", viagem: "Viagem cadastrada.", cotacao: "Cotação registrada." }[a.kind]))[0];
   });
 }

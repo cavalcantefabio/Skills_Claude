@@ -10,6 +10,8 @@ import { latestRadar } from "@/server/radar/run";
 import { addQuote, deleteQuote } from "@/server/actions/trips";
 import { AskAgent } from "@/components/agent/ask-agent";
 import { QuoteForm } from "@/components/trips/quote-form";
+import { ResearchButton } from "@/components/trips/research-button";
+import { agentEnabled } from "@/server/agent/client";
 import { StrategySimulator } from "@/components/trips/simulator";
 import { ChartCard, GoalChart } from "@/components/charts/charts";
 import { DeleteButton } from "@/components/forms/submit";
@@ -258,7 +260,11 @@ export default async function TripPlanPage({ params }: PageProps<"/viagens/[id]"
 
       <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1fr)_440px]">
         <Card className="min-w-0">
-          <CardHeader title="Cotações" description="Valores por passageiro. Real = você consultou; estimativa = referência com fonte." />
+          <CardHeader
+            title="Cotações"
+            description="Valores por passageiro. Real = você consultou; estimativa = referência com fonte."
+            actions={agentEnabled() ? <ResearchButton tripId={trip.id} /> : undefined}
+          />
           <CardBody>
             {quotes.length === 0 ? (
               <p className="py-4 text-sm text-muted">Nenhuma cotação. Consulte o site do programa e da companhia e registre ao lado.</p>

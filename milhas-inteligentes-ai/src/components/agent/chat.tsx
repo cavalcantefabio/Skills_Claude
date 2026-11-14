@@ -19,7 +19,7 @@ const SUGGESTIONS = [
   "Quanto falta de milhas para a minha próxima viagem planejada?",
 ];
 
-const ACTION_LABEL: Record<string, string> = { lancamento: "Lançamento", transferencia: "Transferência", viagem: "Viagem" };
+const ACTION_LABEL: Record<string, string> = { lancamento: "Lançamento", transferencia: "Transferência", viagem: "Viagem", cotacao: "Cotação" };
 const STATUS_TONE = { pendente: "warning", confirmada: "good", recusada: "neutral", falhou: "critical" } as const;
 const STATUS_LABEL: Record<string, string> = { pendente: "Aguardando você", confirmada: "Confirmada", recusada: "Recusada", falhou: "Falhou" };
 
