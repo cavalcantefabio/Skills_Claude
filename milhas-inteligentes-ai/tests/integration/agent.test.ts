@@ -68,7 +68,7 @@ describe("ferramentas de leitura", () => {
     const out = await tools.executeTool("consultar_programas", {}, ctx());
     const data = JSON.parse(out.content);
     const lv = data.programas.find((p: { programa: string }) => p.programa === "Livelo");
-    expect(lv.saldo).toBe(40_000);
+    expect(lv.saldo_disponivel).toBe(40_000);
     expect(lv.valor_estimado_brl).toBe(1400);
     expect(data).not.toHaveProperty("saldo_total");
   });

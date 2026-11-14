@@ -18,10 +18,9 @@
 
 - Recuperação de senha por e-mail (precisa de provedor de e-mail).
 - Troca de e-mail e exclusão de conta pela interface.
-- Rate limit de login em memória: trocar por Redis/Postgres se houver mais de uma instância.
 - Importação de extratos (CSV) dos programas.
 - Edição de movimentações (hoje: excluir crédito intacto ou lançar ajuste).
-- Ajuste automático de pontos vencidos (hoje o alerta pede o lançamento de expiração).
+- Expiração automática (hoje: saldo disponível já exclui vencidos e o botão "Registrar expiração" baixa com um clique).
 - Testes e2e rodando em CI (o script existe; falta o pipeline).
 - Atualização de dependências marcadas como obsoletas pelo scaffold (eslint 9).
 
@@ -64,3 +63,10 @@
 
 - Registro do resultado das recomendações e ajuste dos critérios.
 - Métricas de uso e de economia real.
+
+## Ciclo de melhoria contínua
+
+- [x] 0.7.0: saldo disponível sem pontos vencidos; proteção do login contra força bruta.
+- [ ] Exportar meus dados (JSON + CSV) como backup.
+- [ ] Perguntas de referência para avaliar o agente e o Radar.
+- [ ] Radar automático 2 vezes por semana.

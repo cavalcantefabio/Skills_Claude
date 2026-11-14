@@ -7,7 +7,8 @@ import { sql } from "drizzle-orm";
 import { db, schema } from "@/server/db";
 import { createSession, destroySession } from "./session";
 import { hashPassword, verifyPassword } from "./password";
-import { rateLimit, resetRateLimit } from "./rate-limit";
+import { rateLimit } from "./rate-limit";
+import { clientIpFrom, loginAllowed, recordLoginAttempt } from "./attempts";
 import type { ActionState } from "@/server/services/errors";
 import { signupOpen } from "./signup";
 
@@ -29,9 +30,7 @@ const DUMMY_HASH = "$2b$12$NVYs3.jxuVDkJJ2ZsutuU.D0zRxBdRPG7PX5fUAnT0KD8RasP4Mkm
 const loginSchema = z.object({ email, password: z.string().min(1, "Informe a senha.").max(128) });
 
 async function clientKey(prefix: string, mail: string) {
-  const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  return `${prefix}:${ip}:${mail}`;
+  return `${prefix}:${clientIpFrom(await headers())}:${mail}`;
 }
 
 export async function signup(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -69,8 +68,11 @@ export async function signup(_: ActionState, formData: FormData): Promise<Action
 export async function login(_: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = loginSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, fieldErrors: z.flattenError(parsed.error).fieldErrors };
-  const key = await clientKey("login", parsed.data.email);
-  if (!rateLimit(key, 5)) return { ok: false, message: "Muitas tentativas. Aguarde 15 minutos." };
+  const ip = clientIpFrom(await headers());
+  const gate = await loginAllowed(parsed.data.email, ip);
+  if (!gate.allowed) {
+    return { ok: false, message: `Muitas tentativas de login. Tente de novo em ${gate.retryInMinutes} minuto(s).` };
+  }
 
   const [user] = await db
     .select({ id: schema.users.id, hash: schema.users.passwordHash })
@@ -79,9 +81,9 @@ export async function login(_: ActionState, formData: FormData): Promise<ActionS
   // Mensagem genérica: não revela se o e-mail existe.
   // Sem usuário, compara contra um hash fictício para não revelar a existência do e-mail pelo tempo de resposta.
   const ok = await verifyPassword(parsed.data.password, user?.hash ?? DUMMY_HASH);
+  await recordLoginAttempt(parsed.data.email, ip, Boolean(user && ok));
   if (!user || !ok) return { ok: false, message: "E-mail ou senha incorretos." };
 
-  resetRateLimit(key);
   await createSession(user.id);
   redirect("/");
 }

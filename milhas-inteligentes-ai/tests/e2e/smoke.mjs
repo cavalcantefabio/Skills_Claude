@@ -171,6 +171,46 @@ try {
   await page.getByText("Senha atual incorreta.").waitFor();
   assert(true, "troca de senha exige a senha atual");
 
+  console.log("Pontos vencidos");
+  await page.goto(`${BASE}/milhas`);
+  await pick("#tx-account", "Smiles");
+  await page.selectOption("#tx-type", "bonus");
+  await page.fill("#tx-points", "1500");
+  await page.fill("#tx-date", "2025-01-10");
+  await page.fill("#tx-exp", "2025-06-30");
+  await page.click("text=Registrar");
+  await page.getByText("Movimentação registrada.").waitFor();
+  await page.goto(`${BASE}/programas`);
+  await page.getByText("Smiles", { exact: true }).click();
+  await page.getByText(/já venceram e não entram no saldo disponível/).waitFor();
+  const prog = (await page.textContent("main")).replace(/\u00a0/g, " ");
+  assert(prog.includes("1.500 milhas já venceram"), "crédito vencido aparece à parte, fora do saldo disponível");
+  assert(/Saldo disponível\s*6\.000/.test(prog), "saldo disponível continua 6.000");
+  await page.click("text=Registrar expiração de 1.500 milhas");
+  await page.getByText(/já venceram/).waitFor({ state: "detached" });
+  await page.reload();
+  assert((await page.getByText(/já venceram/).count()) === 0, "após registrar a expiração, o aviso some");
+  assert((await page.textContent("main")).includes("Pontos vencidos em 30/06/2025"), "histórico mostra a expiração com a data do vencimento");
+
+  console.log("Bloqueio de login");
+  const ctx2 = await browser.newContext();
+  const p2 = await ctx2.newPage();
+  const victim = `bloqueio-${Date.now()}@teste.dev`;
+  for (let i = 0; i < 10; i++) {
+    await p2.goto(`${BASE}/login`);
+    await p2.fill("#email", victim);
+    await p2.fill("#password", `errada${i}`);
+    await p2.click("button[type=submit]");
+    await p2.getByText("E-mail ou senha incorretos.").waitFor();
+  }
+  await p2.goto(`${BASE}/login`);
+  await p2.fill("#email", victim);
+  await p2.fill("#password", "qualquer");
+  await p2.click("button[type=submit]");
+  await p2.getByText(/Muitas tentativas de login/).waitFor();
+  assert(true, "11ª tentativa no mesmo e-mail é bloqueada");
+  await ctx2.close();
+
   console.log("Isolamento entre usuários");
   const cardUrl = await page.evaluate(async () => {
     const r = await fetch("/cartoes");

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db, schema } from "@/server/db";
 import { requireUser } from "@/server/auth/session";
-import { CREDIT_TYPES, deleteTransaction, recordTransaction, transferPoints } from "@/server/services/ledger";
+import { CREDIT_TYPES, deleteTransaction, recordTransaction, transferPoints, writeOffExpired } from "@/server/services/ledger";
 import { toActionError, type ActionState } from "@/server/services/errors";
 import { fieldErrors, intPoints, isoDate, money, optIsoDate, optMoney, optText, optUuid, uuid } from "@/lib/validation";
 import { todayISO } from "@/lib/dates";
@@ -105,4 +105,20 @@ export async function deleteTx(formData: FormData): Promise<ActionState> {
   }
   revalidatePath("/", "layout");
   return { ok: true };
+}
+
+export async function writeOffExpiredAction(accountId: string): Promise<ActionState> {
+  const user = await requireUser();
+  const id = z.string().uuid().safeParse(accountId);
+  if (!id.success) return { ok: false, message: "Programa inválido." };
+  try {
+    const r = await writeOffExpired(user.id, id.data);
+    revalidatePath("/", "layout");
+    return {
+      ok: true,
+      message: r.points ? `Expiração registrada: ${r.points.toLocaleString("pt-BR")} pontos baixados.` : "Não há pontos vencidos.",
+    };
+  } catch (e) {
+    return toActionError(e);
+  }
 }
