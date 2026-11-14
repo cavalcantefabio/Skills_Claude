@@ -2,6 +2,21 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.8.0] - 2026-11-15 (Ciclo de melhoria contínua 2)
+
+### Adicionado
+- **Exportar meus dados** (Configurações → Seus dados):
+  - Backup completo em JSON: perfil, programas, saldos por validade, movimentações, cartões (com
+    limite decifrado), viagens, simulações, conversas com o agente (só o texto visível) e a última
+    pesquisa do Radar. Campo `versao_formato` para futuras importações.
+  - Movimentações e saldos por validade em CSV para o Excel em português (`;`, vírgula decimal,
+    BOM UTF-8), com proteção contra injeção de fórmulas.
+- Rota `GET /api/exportar?arquivo=completo|movimentacoes|saldos` (exige sessão; `no-store`).
+- Nunca exporta hash de senha, sessões, tentativas de login ou chaves.
+
+### Testes
+- 6 testes novos (CSV e exportação), 84 no total; 6 verificações novas no teste ponta a ponta (39).
+
 ## [0.7.0] - 2026-11-15 (Ciclo de melhoria contínua 1)
 
 ### Corrigido

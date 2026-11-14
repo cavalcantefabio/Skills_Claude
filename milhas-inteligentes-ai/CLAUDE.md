@@ -88,6 +88,13 @@ tests/                unit/, integration/, e2e/smoke.mjs
   componentes cliente; `server-only` protege os módulos de servidor.
 - Cabeçalhos de segurança em `next.config.ts`.
 
+## Exportação
+
+`src/server/services/export.ts` monta o backup (formato `milhas-inteligentes-ai`, `versao_formato`).
+Ao criar tabelas novas com dados da pessoa, inclua-as no backup. Nunca exporte `password_hash`,
+sessões, `login_attempts` ou chaves. CSV via `src/lib/csv.ts` (`;`, vírgula decimal, BOM, proteção
+contra fórmulas).
+
 ## Gráficos
 
 Siga a skill `dataviz`: cor segue a entidade (posição do programa na lista completa,
