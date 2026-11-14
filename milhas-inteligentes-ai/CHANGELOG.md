@@ -2,6 +2,13 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.3.1] - 2026-11-14
+
+### Adicionado
+- Publicação alternativa no Render + Neon: `scripts/render-build.sh` (pnpm via npx, migrações e
+  build) e guia `RENDER.md`.
+- Node 22 fixado (`engines` no `package.json` e `.node-version`).
+
 ## [0.3.0] - 2026-11-13
 
 ### Adicionado
