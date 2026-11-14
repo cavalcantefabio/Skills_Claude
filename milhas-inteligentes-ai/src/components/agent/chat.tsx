@@ -64,16 +64,20 @@ export function AgentChat({
   conversationId: initialId,
   initialItems,
   initialActions,
+  initialInput = "",
 }: {
   conversationId: string | null;
   initialItems: ViewItem[];
   initialActions: ViewAction[];
+  /** Pergunta preparada por um botão "Perguntar ao agente": fica no campo, sem enviar. */
+  initialInput?: string;
 }) {
   const router = useRouter();
   const [conversationId, setConversationId] = useState(initialId);
   const [items, setItems] = useState<Item[]>(initialItems);
   const [actions, setActions] = useState<ViewAction[]>(initialActions);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialInput);
+  const [prepared, setPrepared] = useState(Boolean(initialInput));
   const [busy, setBusy] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -126,6 +130,7 @@ export function AgentChat({
     const message = text.trim();
     if (!message || busy) return;
     setInput("");
+    setPrepared(false);
     setBusy(true);
     setItems((prev) => [...prev, { kind: "user", text: message }]);
     const ctrl = new AbortController();
@@ -261,6 +266,11 @@ export function AgentChat({
         }}
         className="sticky bottom-0 -mx-1 bg-bg/90 px-1 pb-4 pt-2 backdrop-blur"
       >
+        {prepared && input && (
+          <p className="mb-2 rounded-xl bg-accent-soft px-3 py-2 text-xs text-accent-soft-ink">
+            Pergunta preparada a partir da página anterior. Revise ou edite e clique em enviar; nada é enviado sem você.
+          </p>
+        )}
         <div className="flex items-end gap-2 rounded-2xl border border-line-strong bg-surface p-2 shadow-sm focus-within:border-accent">
           <label htmlFor="agent-input" className="sr-only">
             Mensagem para o agente
@@ -275,10 +285,11 @@ export function AgentChat({
                 send(input);
               }
             }}
-            rows={1}
+            rows={input.length > 90 ? 4 : 1}
+            autoFocus={prepared}
             maxLength={4000}
             placeholder="Pergunte sobre seus pontos, cartões ou viagens…"
-            className="max-h-40 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-[14.5px] text-ink placeholder:text-muted focus:outline-none"
+            className="max-h-40 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-[14.5px] text-ink placeholder:text-muted focus:outline-none focus-visible:outline-none"
           />
           {busy ? (
             <Button type="button" variant="secondary" size="sm" className="size-9 px-0" aria-label="Parar" onClick={() => abortRef.current?.abort()}>

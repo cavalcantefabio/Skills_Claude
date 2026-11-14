@@ -2,6 +2,13 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.5.0] - 2026-11-14
+
+### Adicionado
+- Botão "Perguntar ao agente" em cada alerta, em cada viagem, na página de cada programa e em Meus
+  Cartões. Abre o agente com uma pergunta escrita a partir daquele contexto; a pessoa revisa e envia
+  (nada é enviado sozinho). Os botões somem se o agente não estiver configurado.
+
 ## [0.4.0] - 2026-11-14
 
 ### Adicionado

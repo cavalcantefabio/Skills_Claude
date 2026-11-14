@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BellOff, ChevronRight, CircleAlert, Info, TriangleAlert } from "lucide-react";
 import { requireUser } from "@/server/auth/session";
 import { computeAlerts } from "@/server/services/alerts";
+import { AskAgent } from "@/components/agent/ask-agent";
 import { Badge, Card, CardBody, CardHeader, EmptyState, InDevelopment, PageHeader, cx } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Alertas" };
@@ -33,8 +34,8 @@ export default async function AlertsPage() {
                 const u = ui[a.severity];
                 const Icon = u.icon;
                 return (
-                  <li key={a.id}>
-                    <Link href={a.href} className="group flex items-start gap-3 rounded-xl px-2 py-3 hover:bg-surface-2">
+                  <li key={a.id} className="flex flex-col gap-1 rounded-xl hover:bg-surface-2 sm:flex-row sm:items-center">
+                    <Link href={a.href} className="group flex min-w-0 flex-1 items-start gap-3 rounded-xl px-2 py-3">
                       <Icon className={cx("mt-0.5 size-5 shrink-0", u.color)} aria-hidden />
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
@@ -45,6 +46,7 @@ export default async function AlertsPage() {
                       </div>
                       <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted group-hover:text-ink" aria-hidden />
                     </Link>
+                    <AskAgent question={a.question} variant="ghost" className="mb-2 ml-10 self-start sm:mb-0 sm:ml-0 sm:mr-2 sm:self-center" />
                   </li>
                 );
               })}

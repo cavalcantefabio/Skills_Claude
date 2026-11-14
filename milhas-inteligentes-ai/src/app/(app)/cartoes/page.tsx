@@ -6,6 +6,7 @@ import { listCards } from "@/server/services/cards";
 import { listAccounts } from "@/server/services/accounts";
 import { Badge, Card, EmptyState, LinkButton, PageHeader, buttonClass } from "@/components/ui";
 import { CardCompare } from "@/components/card-compare";
+import { AskAgent } from "@/components/agent/ask-agent";
 import { BRAND_LABEL } from "@/lib/labels";
 import { formatBRL, formatDecimal } from "@/lib/format";
 
@@ -22,9 +23,14 @@ export default async function CardsPage() {
         title="Meus Cartões"
         description="Cartões de crédito, pontuação e anuidade. Não armazenamos número, CVV nem senha."
         actions={
+          <>
+          {cards.length > 0 && (
+            <AskAgent size="md" question="Considerando como uso meus cartões e os programas para onde vão os pontos, qual cartão compensa mais para mim? Vale manter todos ou cancelar algum?" />
+          )}
           <LinkButton href="/cartoes/novo">
             <Plus className="size-4" aria-hidden /> Novo cartão
           </LinkButton>
+          </>
         }
       />
       {cards.length === 0 ? (

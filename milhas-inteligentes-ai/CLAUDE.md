@@ -137,6 +137,10 @@ Arquivos em `src/server/agent/`:
   (`AGENT_DAILY_MESSAGE_LIMIT`). **Não ligue a chamada à API ao `request.signal`**: no
   Next ele dispara ao devolver a Response; o cancelamento usa o `cancel()` do stream.
 
+Perguntar ao agente: `<AskAgent question="…">` (`src/components/agent/ask-agent.tsx`) leva a
+`/agente?q=…` (até 500 caracteres); a pergunta entra no campo sem enviar. Alertas trazem a pergunta
+pronta em `Alert.question` (`services/alerts.ts`).
+
 Custo: cada resposta grava uma linha em `agent_usage` (tokens + custo em US$ calculado por
 `src/lib/pricing.ts` no momento da resposta). Ao mudar preços, atualize `RATES` e `PRICING_AS_OF`;
 linhas antigas mantêm o custo calculado na época.

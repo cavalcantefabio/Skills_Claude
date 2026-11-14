@@ -10,6 +10,8 @@ export type Alert = {
   title: string;
   description: string;
   href: string;
+  /** Pergunta preparada para o botão "Perguntar ao agente". */
+  question: string;
 };
 
 /**
@@ -31,6 +33,7 @@ export async function computeAlerts(userId: string, alertDays: number): Promise<
         title: `${formatPoints(l.remaining)} ${l.unit} vencidos em ${l.programName}`,
         description: `A validade terminou em ${formatDate(l.expiresAt)}. Se o programa já baixou os pontos, lance uma expiração para manter o saldo correto.`,
         href: `/programas/${l.accountId}`,
+        question: `Tenho ${formatPoints(l.remaining)} ${l.unit} de ${l.programName} com validade em ${formatDate(l.expiresAt)}, que já passou. O que devo fazer para deixar o saldo correto e o que ainda dá para aproveitar?`,
       });
     } else if (d <= alertDays) {
       out.push({
@@ -39,6 +42,7 @@ export async function computeAlerts(userId: string, alertDays: number): Promise<
         title: `${formatPoints(l.remaining)} ${l.unit} de ${l.programName} vencem em ${d} dia(s)`,
         description: `Validade em ${formatDate(l.expiresAt)}. Use, transfira ou renove antes de perder os pontos.`,
         href: `/programas/${l.accountId}`,
+        question: `Tenho ${formatPoints(l.remaining)} ${l.unit} de ${l.programName} que vencem em ${formatDate(l.expiresAt)} (${d} dias). Considerando meus programas e viagens planejadas, o que você sugere fazer com esses pontos?`,
       });
     }
   }
@@ -53,6 +57,7 @@ export async function computeAlerts(userId: string, alertDays: number): Promise<
           title: `${a.clubName ?? "Clube"} custa mais do que os pontos mensais valem`,
           description: `${formatPoints(a.clubMonthlyPoints)} ${a.unit}/mês valem ${formatBRL(value)} pelo seu milheiro, contra ${formatBRL(a.clubMonthlyCostBrl)} de mensalidade. Bônus de transferência podem compensar: confira na calculadora de clubes.`,
           href: "/calculadoras?c=clube_pontos",
+          question: `Meu ${a.clubName ?? "clube"} de ${a.programName} custa ${formatBRL(a.clubMonthlyCostBrl)} por mês e dá ${formatPoints(a.clubMonthlyPoints)} ${a.unit}. Vale a pena continuar assinando? Faça a conta considerando também bônus de transferência.`,
         });
       }
     }
@@ -63,6 +68,7 @@ export async function computeAlerts(userId: string, alertDays: number): Promise<
         title: `Defina o valor do milheiro de ${a.programName}`,
         description: "Sem ele, este programa fica fora do valor econômico estimado e das comparações.",
         href: `/programas/${a.id}`,
+        question: `Me ajude a definir um valor de referência para o milheiro de ${a.programName}. Que critérios devo usar, considerando como costumo usar esses pontos?`,
       });
     }
   }
@@ -80,6 +86,7 @@ export async function computeAlerts(userId: string, alertDays: number): Promise<
         title: `Faltam ${formatPoints(trip.milesNeeded - balance)} ${acc?.unit ?? "milhas"} para "${trip.title}"`,
         description: `Embarque em ${d} dia(s) (${formatDate(trip.departDate)}), emissão planejada com ${programName}.`,
         href: "/viagens",
+        question: `Para a viagem "${trip.title}" (${trip.origin} → ${trip.destination}, ida em ${formatDate(trip.departDate)}), faltam ${formatPoints(trip.milesNeeded - balance)} ${acc?.unit ?? "milhas"} em ${programName}. Como consigo essas milhas a tempo com os pontos e cartões que tenho?`,
       });
     }
   }
