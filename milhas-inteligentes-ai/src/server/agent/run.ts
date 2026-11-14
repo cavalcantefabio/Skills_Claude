@@ -7,6 +7,7 @@ import { SYSTEM_PROMPT } from "./prompt";
 import { TOOL_LABELS, executeTool, toolDefinitions } from "./tools";
 import { formatDate } from "@/lib/format";
 import { todayISO } from "@/lib/dates";
+import { usageCost } from "@/lib/pricing";
 
 type BetaMessageParam = Anthropic.Beta.BetaMessageParam;
 type BetaContentBlock = Anthropic.Beta.BetaContentBlock;
@@ -137,6 +138,22 @@ export async function saveNotice(conversationId: string, notice: { tone: "warnin
   if (last) await db.update(schema.agentMessages).set({ notice }).where(eq(schema.agentMessages.id, last.id));
 }
 
+/** Registra tokens e custo estimado de uma resposta (o modelo pode ser o de fallback). */
+async function recordUsage(userId: string, conversationId: string, message: Anthropic.Beta.BetaMessage) {
+  const model = message.model || AGENT_MODEL;
+  const cost = usageCost(message.usage ?? {}, model);
+  await db.insert(schema.agentUsage).values({
+    userId,
+    conversationId,
+    model,
+    inputTokens: cost.tokens.input,
+    outputTokens: cost.tokens.output,
+    cacheReadTokens: cost.tokens.cacheRead,
+    cacheWriteTokens: cost.tokens.cacheWrite,
+    costUsd: cost.usd.toFixed(6),
+  });
+}
+
 export type RunTurnInput = {
   client: AgentClient;
   userId: string;
@@ -190,6 +207,7 @@ export async function runAgentTurn({ client, userId, alertDays, usdRateBrl, conv
     }
 
     await append(conversationId, "assistant", message.content, { usage: message.usage, stopReason: message.stop_reason });
+    await recordUsage(userId, conversationId, message);
     await db
       .update(schema.agentConversations)
       .set({ updatedAt: new Date() })

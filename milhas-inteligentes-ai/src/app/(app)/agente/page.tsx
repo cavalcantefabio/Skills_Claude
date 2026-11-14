@@ -11,6 +11,10 @@ import { AgentChat } from "@/components/agent/chat";
 import { DeleteButton } from "@/components/forms/submit";
 import { Card, CardBody, CardHeader, LinkButton, PageHeader, cx } from "@/components/ui";
 import { formatDate } from "@/lib/format";
+import { formatUSD, PRICING_AS_OF } from "@/lib/pricing";
+import { getAgentUsageSummary } from "@/server/agent/usage";
+import { messagesToday } from "@/server/agent/run";
+import { env } from "@/server/env";
 
 export const metadata: Metadata = { title: "Agente Inteligente" };
 
@@ -41,8 +45,10 @@ export default async function AgentPage({ searchParams }: PageProps<"/agente">) 
   }
 
   const selected = typeof sp.c === "string" && z.string().uuid().safeParse(sp.c).success ? sp.c : null;
-  const [conversations, view] = await Promise.all([
+  const [conversations, usage, sentToday, view] = await Promise.all([
     listConversations(user.id),
+    getAgentUsageSummary(user.id),
+    messagesToday(user.id),
     selected ? loadConversationView(user.id, selected) : Promise.resolve(null),
   ]);
   if (selected && !view) notFound();
@@ -78,12 +84,40 @@ export default async function AgentPage({ searchParams }: PageProps<"/agente">) 
                         )}
                       >
                         <span className="block truncate text-[13px] font-medium text-ink">{c.title}</span>
-                        <span className="text-[11px] text-muted">{formatDate(c.updatedAt.toISOString())}</span>
+                        <span className="flex justify-between gap-2 text-[11px] text-muted">
+                          <span>{formatDate(c.updatedAt.toISOString())}</span>
+                          {usage.byConversation.has(c.id) && <span className="tabular">{formatUSD(usage.byConversation.get(c.id)!)}</span>}
+                        </span>
                       </Link>
                     </li>
                   ))}
                 </ul>
               )}
+            </CardBody>
+          </Card>
+          <Card>
+            <CardHeader title="Uso do agente" description={`Estimativa pela tabela de preços da API (${PRICING_AS_OF.split("-").reverse().join("/")}). A fatura da Anthropic é a referência.`} />
+            <CardBody>
+              <dl className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <dt className="text-xs text-muted">Este mês</dt>
+                  <dd className="tabular text-lg font-semibold">{formatUSD(usage.monthUsd)}</dd>
+                  <dd className="text-[11px] text-muted">{usage.monthResponses} resposta(s)</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted">Mensagens hoje</dt>
+                  <dd className="tabular text-lg font-semibold">
+                    {sentToday} <span className="text-sm font-normal text-muted">de {env.AGENT_DAILY_MESSAGE_LIMIT}</span>
+                  </dd>
+                </div>
+                {view && usage.byConversation.has(view.conversation.id) && (
+                  <div className="col-span-2 border-t border-line pt-3">
+                    <dt className="text-xs text-muted">Esta conversa</dt>
+                    <dd className="tabular font-medium">{formatUSD(usage.byConversation.get(view.conversation.id)!)}</dd>
+                  </div>
+                )}
+                <div className="col-span-2 text-[11px] text-muted">Desde o início: {formatUSD(usage.allTimeUsd)}</div>
+              </dl>
             </CardBody>
           </Card>
           {view && (

@@ -137,6 +137,10 @@ Arquivos em `src/server/agent/`:
   (`AGENT_DAILY_MESSAGE_LIMIT`). **Não ligue a chamada à API ao `request.signal`**: no
   Next ele dispara ao devolver a Response; o cancelamento usa o `cancel()` do stream.
 
+Custo: cada resposta grava uma linha em `agent_usage` (tokens + custo em US$ calculado por
+`src/lib/pricing.ts` no momento da resposta). Ao mudar preços, atualize `RATES` e `PRICING_AS_OF`;
+linhas antigas mantêm o custo calculado na época.
+
 Regras do agente: não acessa internet nem dados de mercado; nunca grava sem confirmação;
 não recebe limite de crédito; mensagens de ferramenta em português.
 

@@ -34,7 +34,7 @@
 - [x] Limite diário de mensagens, proteção CSRF, isolamento por usuário
 - [x] Teste com a API real: 5 cenários (vencimentos, cartões, dinheiro x milhas, proposta confirmada, pergunta sem dados de mercado); custo medido de ~US$ 0,05 por mensagem
 - [ ] Avaliação de qualidade das respostas (conjunto de perguntas de referência)
-- [ ] Mostrar custo em tokens por conversa
+- [x] Custo estimado por conversa, do mês e desde o início, e mensagens do dia (tabela `agent_usage`)
 - [ ] Botão "perguntar ao agente" nas páginas (ex.: num alerta ou numa viagem)
 - FastAPI segue desnecessário.
 

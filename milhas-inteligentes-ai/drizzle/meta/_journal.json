@@ -29,6 +29,20 @@
       "when": 1794601257465,
       "tag": "0003_agente_aviso",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794624179357,
+      "tag": "0004_agente_uso",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794624180052,
+      "tag": "0005_agente_uso_historico",
+      "breakpoints": true
     }
   ]
 }
