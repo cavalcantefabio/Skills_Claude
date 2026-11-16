@@ -7,7 +7,7 @@ Guia para agentes (Claude Code) que trabalham neste projeto. Leia antes de mudar
 ## O que é
 
 Plataforma web para gerenciar pontos, milhas, cartões de crédito e viagens.
-**Etapa atual: 2 (Agente Inteligente), entrega 1 concluída.** Etapa 1 aprovada.
+**Versão 0.10.0.** Etapa 1 aprovada; Etapas 2 e 3 (entrega 1), ciclo de melhoria contínua e Planejador de viagens entregues; agente com busca na web.
 Radar, recomendações e evolução contínua são etapas seguintes e dependem de aprovação.
 
 ## Stack e decisões
@@ -145,7 +145,7 @@ pnpm typecheck && pnpm lint && pnpm build
 Arquivos em `src/server/agent/`:
 - `client.ts`: modelo `claude-opus-5-5`, SDK `@anthropic-ai/sdk`, chave em `MILHAS_ANTHROPIC_API_KEY` (ou `ANTHROPIC_API_KEY` fora do Claude Code); `baseURL` fixo, nunca herdado de `ANTHROPIC_BASE_URL`
   (sem ela, a página explica como ativar e o resto do app funciona).
-- `prompt.ts`: prompt de sistema **estável** (fica em cache). Dados que mudam (data de
+- `prompt.ts`: prompt de sistema **estável** (fica em cache; `systemPrompt(webSearch)` tem duas variantes). Dados que mudam (data de
   hoje, propostas decididas) vão numa mensagem `role: "system"` após cada mensagem do usuário.
 - `tools.ts`: 7 ferramentas de leitura (`consultar_*`, `calcular`) e 3 de proposta
   (`propor_lancamento`, `propor_transferencia`, `propor_viagem`). Entradas validadas com
@@ -177,7 +177,19 @@ Custo: cada resposta grava uma linha em `agent_usage` (tokens + custo em US$ cal
 `src/lib/pricing.ts` no momento da resposta). Ao mudar preços, atualize `RATES` e `PRICING_AS_OF`;
 linhas antigas mantêm o custo calculado na época.
 
-Regras do agente: não acessa internet nem dados de mercado; nunca grava sem confirmação;
+Busca na web no chat (0.10.0): com `AGENT_WEB_SEARCH` (padrão `true`), o loop envia
+`WEB_SEARCH_TOOL` (`web_search_20260209`, sem restrição de domínio, `max_uses` 8 por chamada) e o
+prompt usa a variante com web de `systemPrompt(webSearch)` (duas variantes estáveis, cada uma em
+cache). Essa versão filtra resultados com execução de código e **não devolve citações** no texto:
+o prompt exige links Markdown com a URL exata de um resultado, e `src/lib/web-sources.ts` só
+aceita como "Fontes citadas" os links (ou citações) que batem com uma página devolvida pela busca
+(`extractSearchResults`). Chips: `streamEvent` (`content_block_start` de `server_tool_use` e
+`web_search_tool_result`); o termo pesquisado vai no `tool_end` (`label`). Evento SSE `sources`
+(`sources` citadas + `searched` todas as páginas). `view.ts` reconstrói tudo do histórico e junta
+blocos de texto seguidos (citações quebram o texto em vários blocos). Conteúdo da web é dado, não
+instrução (regra no prompt); escrita continua só por proposta confirmada.
+
+Regras do agente: com a busca desligada, não acessa internet nem dados de mercado; nunca grava sem confirmação;
 não recebe limite de crédito; mensagens de ferramenta em português.
 
 Calculadoras (`src/lib/calculators`) e serviços (`src/server/services/*`) são a base das

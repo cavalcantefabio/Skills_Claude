@@ -4,8 +4,8 @@ Aplicativo web para gerenciar pontos, milhas, cartões de crédito e viagens: sa
 programa e por validade, histórico de movimentações, comparação de cartões e
 calculadoras de milheiro, com dashboard e modo claro/escuro.
 
-> **Status:** Etapa 1 concluída e aprovada. Etapa 2 (Agente Inteligente), entrega 1
-> concluída. Radar de oportunidades segue **Em desenvolvimento**. Ver [ROADMAP.md](ROADMAP.md).
+> **Status (0.10.0):** Etapa 1 aprovada; Agente Inteligente (com busca na web), Radar de
+> Oportunidades e Planejador de viagens em uso. Ver [ROADMAP.md](ROADMAP.md).
 
 ## Funcionalidades
 
@@ -20,7 +20,7 @@ calculadoras de milheiro, com dashboard e modo claro/escuro.
 | Alertas | 🟡 parcial | Vencimentos, pontos vencidos, clubes deficitários e viagens sem saldo. Notificações em desenvolvimento |
 | Configurações | ✅ | Perfil, cotação do dólar, janela de alertas, tema, troca de senha e saída de todos os dispositivos |
 | Radar de Oportunidades | ✅ | Pesquisa sob demanda (botão) de promoções vigentes de transferência e compra de pontos, com fonte, cálculo para os seus saldos e alertas. Requer `MILHAS_ANTHROPIC_API_KEY`; ~US$ 0,35 por atualização (Claude Sonnet 5.5) |
-| Agente Inteligente | ✅ | Chat com IA que consulta seus dados, faz as contas e propõe lançamentos, transferências e viagens. Nada é gravado sem sua confirmação. Requer `MILHAS_ANTHROPIC_API_KEY` |
+| Agente Inteligente | ✅ | Chat com IA que consulta seus dados, faz as contas e propõe lançamentos, transferências e viagens. Pesquisa na web referências de passagens, hotéis e roteiros, com links das fontes (sem garantia de preço ou disponibilidade). Nada é gravado sem sua confirmação. Requer `MILHAS_ANTHROPIC_API_KEY` |
 
 ## Requisitos
 
@@ -65,6 +65,7 @@ pnpm dev          # http://localhost:3000
 | `TRIP_RESEARCH_DAILY_LIMIT` | Pesquisas de referência de viagem por dia (padrão 5) |
 | `RADAR_DAILY_LIMIT` | Atualizações do Radar por dia (padrão 3) |
 | `AGENT_DAILY_MESSAGE_LIMIT` | Mensagens por usuário por dia ao agente (padrão 60) |
+| `AGENT_WEB_SEARCH` | Busca na web no chat do agente (padrão `true`; `false` desliga). Perguntas que pesquisam custam ~US$ 0,20 a 0,35 |
 | `APP_ENCRYPTION_KEY` | 32 bytes em base64 para AES-256-GCM (limite de crédito). Trocar a chave torna ilegíveis os limites já salvos |
 
 ## Testes

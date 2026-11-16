@@ -34,6 +34,8 @@
 - [x] Teste com a API real: 5 cenários (vencimentos, cartões, dinheiro x milhas, proposta confirmada, pergunta sem dados de mercado); custo medido de ~US$ 0,05 por mensagem
 - [ ] Avaliação de qualidade das respostas (conjunto de perguntas de referência)
 - [x] Custo estimado por conversa, do mês e desde o início, e mensagens do dia (tabela `agent_usage`)
+- [x] Busca na web no chat (0.10.0): referências de passagens, hotéis (inclusive resgate com pontos)
+      e roteiros, com links das fontes conferidos contra as páginas que a busca devolveu
 - [x] Botão "Perguntar ao agente" em alertas, viagens, cartões e na página de cada programa (pergunta preparada, enviada só pela pessoa)
 - FastAPI segue desnecessário.
 

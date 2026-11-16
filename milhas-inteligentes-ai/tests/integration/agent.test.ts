@@ -204,11 +204,14 @@ describe("loop do agente (cliente falso da API)", () => {
             const r = responses.shift();
             if (!r) throw new Error("sem resposta simulada");
             const handlers: ((t: string) => void)[] = [];
+            const streamHandlers: ((e: unknown) => void)[] = [];
             return {
-              on: (event: string, cb: (t: string) => void) => {
-                if (event === "text") handlers.push(cb);
+              on: (event: string, cb: (t: never) => void) => {
+                if (event === "text") handlers.push(cb as (t: string) => void);
+                if (event === "streamEvent") streamHandlers.push(cb as (e: unknown) => void);
               },
               finalMessage: async () => {
+                for (const b of r.content) streamHandlers.forEach((h) => h({ type: "content_block_start", index: 0, content_block: b }));
                 for (const b of r.content as { type: string; text?: string }[]) if (b.type === "text") handlers.forEach((h) => h(b.text!));
                 return { id: "msg", type: "message", role: "assistant", model: "m", content: r.content, stop_reason: r.stop_reason, usage: { input_tokens: 1, output_tokens: 1 } };
               },
@@ -308,6 +311,66 @@ describe("loop do agente (cliente falso da API)", () => {
     const [kept] = await db.select().from(schema.agentUsage).where(eq(schema.agentUsage.id, rows[0].id));
     expect(kept.conversationId).toBeNull();
     expect((await getAgentUsageSummary(userId)).monthResponses).toBe(after.monthResponses);
+  });
+
+  it("busca na web: envia a ferramenta, mostra a pesquisa e as fontes citadas", async () => {
+    const conv = await run.createConversation(userId, "Lisboa");
+    const { client, calls } = fakeClient([
+      {
+        stop_reason: "end_turn",
+        content: [
+          { type: "server_tool_use", id: "srvtoolu_1", name: "web_search", input: { query: "passagem São Paulo Lisboa março" } },
+          { type: "web_search_tool_result", tool_use_id: "srvtoolu_1", content: [
+              { type: "web_search_result", url: "https://voos.exemplo.com/lis", title: "Voos", encrypted_content: "x" },
+              { type: "web_search_result", url: "https://hotel.exemplo.pt/a", title: "Hotel A Lisboa", encrypted_content: "x" },
+            ] },
+          { type: "text", text: "Referência: a partir de R$ 4.200 ", citations: [{ type: "web_search_result_location", url: "https://voos.exemplo.com/lis", title: "Voos SP-Lisboa", cited_text: "R$ 4.200", encrypted_index: "e" }] },
+          { type: "text", text: "(preço público, sem garantia de disponibilidade). Hotel: [Hotel A](https://hotel.exemplo.pt/a/) e [inventado](https://falso.exemplo.com/x).", citations: null },
+        ],
+      },
+    ]);
+    const events: { type: string; label?: string; sources?: unknown[] }[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const base = { client: client as any, userId, alertDays: 90, conversationId: conv.id, text: "Quanto custa ir a Lisboa?", emit: (e: (typeof events)[number]) => events.push(e) };
+    await run.runAgentTurn({ ...base, webSearch: true });
+
+    const tools = calls[0].tools as { name: string; type?: string; max_uses?: number }[];
+    expect(tools.find((t) => t.name === "web_search")).toMatchObject({ type: "web_search_20260209", max_uses: 8 });
+    expect((calls[0].system as { text: string }[])[0].text).toMatch(/web_search/);
+    expect((calls[0].system as { text: string }[])[0].text).toMatch(/informação, não instrução/);
+
+    expect(events.map((e) => e.type)).toEqual(["tool_start", "tool_end", "text", "text", "tool_end", "sources", "done"]);
+    expect(events[4].label).toBe("Pesquisou na web: “passagem São Paulo Lisboa março”");
+    // Fontes: a citação e o link que aponta para um resultado da busca; o link inventado fica de fora.
+    const expectedSources = [
+      { url: "https://voos.exemplo.com/lis", title: "Voos SP-Lisboa" },
+      { url: "https://hotel.exemplo.pt/a", title: "Hotel A Lisboa" },
+    ];
+    expect(events[5].sources).toEqual(expectedSources);
+    expect((events[5] as { searched?: unknown[] }).searched).toHaveLength(2);
+
+    const [usage] = await db.select().from(schema.agentUsage).where(eq(schema.agentUsage.conversationId, conv.id));
+    expect(usage.source).toBe("agente");
+
+    const view = await import("@/server/agent/view").then((m) => m.loadConversationView(userId, conv.id));
+    const assistant = view!.items.find((i) => i.kind === "assistant");
+    expect((assistant as { searched: unknown[] }).searched).toHaveLength(2);
+    expect(assistant).toMatchObject({
+      parts: [
+        { type: "tool", id: "srvtoolu_1", label: "Pesquisou na web: “passagem São Paulo Lisboa março”", ok: true },
+        { type: "text", text: expect.stringMatching(/^Referência: a partir de R\$ 4\.200 \(preço público.*\[Hotel A\]/) },
+      ],
+      sources: expectedSources,
+    });
+  });
+
+  it("sem busca na web, a ferramenta não é enviada e o prompt diz que não há internet", async () => {
+    const conv = await run.createConversation(userId, "y");
+    const { client, calls } = fakeClient([{ stop_reason: "end_turn", content: [{ type: "text", text: "ok" }] }]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await run.runAgentTurn({ client: client as any, userId, alertDays: 90, conversationId: conv.id, text: "y", emit: () => {} });
+    expect((calls[0].tools as { name: string }[]).some((t) => t.name === "web_search")).toBe(false);
+    expect((calls[0].system as { text: string }[])[0].text).toMatch(/não tem acesso à internet/);
   });
 
   it("recusa (refusal) encerra o turno com aviso", async () => {

@@ -3,11 +3,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/server/db";
 import { AGENT_MODEL, FALLBACK_BETA, type AgentClient } from "./client";
-import { SYSTEM_PROMPT } from "./prompt";
+import { systemPrompt } from "./prompt";
 import { TOOL_LABELS, executeTool, toolDefinitions } from "./tools";
 import { formatDate } from "@/lib/format";
 import { todayISO } from "@/lib/dates";
 import { usageCost } from "@/lib/pricing";
+import { extractSearchResults, extractWebSources, mergeSources, webSearchLabel, webSearchOk, type WebSource } from "@/lib/web-sources";
 
 type BetaMessageParam = Anthropic.Beta.BetaMessageParam;
 type BetaContentBlock = Anthropic.Beta.BetaContentBlock;
@@ -17,13 +18,17 @@ export type AgentEvent =
   | { type: "conversation"; id: string; title: string }
   | { type: "text"; delta: string }
   | { type: "tool_start"; id: string; name: string; label: string }
-  | { type: "tool_end"; id: string; ok: boolean; actionId?: string }
+  | { type: "tool_end"; id: string; ok: boolean; actionId?: string; label?: string }
+  | { type: "sources"; sources: WebSource[]; searched: WebSource[] }
   | { type: "action"; action: { id: string; toolUseId: string; kind: string; summary: string; status: string } }
   | { type: "notice"; tone: "warning" | "error"; message: string }
   | { type: "done" };
 
 const MAX_ITERATIONS = 10;
 const MAX_JSON_RETRIES = 2;
+/** Buscas na web por chamada à API (cada uma custa US$ 0,01 além dos tokens). */
+export const AGENT_WEB_SEARCH_MAX_USES = 8;
+export const WEB_SEARCH_TOOL = { type: "web_search_20260209", name: "web_search", max_uses: AGENT_WEB_SEARCH_MAX_USES } as const;
 
 async function nextSeq(conversationId: string) {
   const [r] = await db
@@ -166,9 +171,11 @@ export type RunTurnInput = {
   text: string;
   emit: (e: AgentEvent) => void;
   signal?: AbortSignal;
+  /** Busca na web (servidor da Anthropic) disponível nesta conversa. */
+  webSearch?: boolean;
 };
 
-export async function runAgentTurn({ client, userId, alertDays, usdRateBrl, conversationId, text, emit: rawEmit, signal }: RunTurnInput) {
+export async function runAgentTurn({ client, userId, alertDays, usdRateBrl, conversationId, text, emit: rawEmit, signal, webSearch = false }: RunTurnInput) {
   const emit = (e: AgentEvent) => {
     rawEmit(e);
     if (e.type === "notice") void saveNotice(conversationId, { tone: e.tone, message: e.message });
@@ -177,14 +184,15 @@ export async function runAgentTurn({ client, userId, alertDays, usdRateBrl, conv
   await append(conversationId, "system", [{ type: "text", text: await turnContext(userId, conversationId, usdRateBrl) }]);
 
   let jsonRetries = 0;
+  let searched: WebSource[] = [];
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const messages = await loadHistory(conversationId);
     const stream = client.beta.messages.stream(
       {
         model: AGENT_MODEL,
         max_tokens: 32000,
-        system: [{ type: "text", text: SYSTEM_PROMPT }],
-        tools: toolDefinitions,
+        system: [{ type: "text", text: systemPrompt(webSearch) }],
+        tools: webSearch ? [...toolDefinitions, WEB_SEARCH_TOOL] : toolDefinitions,
         messages,
         thinking: { type: "adaptive" },
         output_config: { effort: "medium" },
@@ -195,6 +203,16 @@ export async function runAgentTurn({ client, userId, alertDays, usdRateBrl, conv
       { signal },
     );
     stream.on("text", (delta) => emit({ type: "text", delta }));
+    // Buscas na web rodam no servidor da API: mostramos o chip enquanto acontecem.
+    stream.on("streamEvent", (event) => {
+      if (event.type !== "content_block_start") return;
+      const b = event.content_block;
+      if (b.type === "server_tool_use" && b.name === "web_search") {
+        emit({ type: "tool_start", id: b.id, name: "web_search", label: "Pesquisando na web" });
+      } else if (b.type === "web_search_tool_result") {
+        emit({ type: "tool_end", id: b.tool_use_id, ok: webSearchOk(b.content) });
+      }
+    });
 
     let message: Anthropic.Beta.BetaMessage;
     try {
@@ -210,6 +228,17 @@ export async function runAgentTurn({ client, userId, alertDays, usdRateBrl, conv
 
     await append(conversationId, "assistant", message.content, { usage: message.usage, stopReason: message.stop_reason });
     await recordUsage(userId, conversationId, message);
+    // Termos pesquisados (só chegam completos no fim) e fontes citadas.
+    for (const b of message.content) {
+      if (b.type === "server_tool_use" && b.name === "web_search") {
+        const result = message.content.find((r) => r.type === "web_search_tool_result" && r.tool_use_id === b.id);
+        emit({ type: "tool_end", id: b.id, ok: result ? webSearchOk((result as { content: unknown }).content) : true, label: webSearchLabel(b.input) });
+      }
+    }
+    const found = extractSearchResults(message.content);
+    searched = mergeSources(searched, found);
+    const sources = extractWebSources(message.content, searched);
+    if (sources.length || found.length) emit({ type: "sources", sources, searched: found });
     await db
       .update(schema.agentConversations)
       .set({ updatedAt: new Date() })
