@@ -73,6 +73,7 @@ export async function POST(request: Request) {
           text: parsed.data.message,
           emit,
           signal: abort.signal,
+          webSearch: env.AGENT_WEB_SEARCH,
         });
       } catch (err) {
         const message = describeAgentError(err);

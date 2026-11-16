@@ -67,7 +67,7 @@ export default async function AgentPage({ searchParams }: PageProps<"/agente">) 
           </LinkButton>
         }
       />
-      <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="order-2 flex flex-col gap-4 xl:order-1">
           <Card>
             <CardHeader title="Conversas" />

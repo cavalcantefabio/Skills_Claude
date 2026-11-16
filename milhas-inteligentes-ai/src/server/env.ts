@@ -25,6 +25,11 @@ const schema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((v) => v === "true"),
+  /** Busca na web no chat do agente (passagens, hotéis, roteiros). "false" desliga. */
+  AGENT_WEB_SEARCH: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
   /** Atualizações do Radar de Oportunidades por usuário por dia (cada uma usa busca na web). */
   RADAR_DAILY_LIMIT: z.coerce.number().int().positive().default(3),
   /** Pesquisas de referência de viagem por usuário por dia (cada uma usa busca na web). */

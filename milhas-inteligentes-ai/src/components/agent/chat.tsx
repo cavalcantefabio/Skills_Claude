@@ -2,21 +2,22 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, Bot, Check, CircleAlert, Loader2, Square, Wrench, X } from "lucide-react";
+import { ArrowUp, Bot, Check, CircleAlert, ExternalLink, Globe, Loader2, Square, Wrench, X } from "lucide-react";
 import { Badge, Button, cx } from "@/components/ui";
 import { Markdown } from "./markdown";
 import { decideAgentAction } from "@/server/actions/agent";
 import type { ViewAction, ViewItem } from "@/server/agent/view";
 import type { AgentEvent } from "@/server/agent/run";
+import { hostOf, mergeSources, type WebSource } from "@/lib/web-sources";
 
 type Part = Extract<ViewItem, { kind: "assistant" }>["parts"][number] & { running?: boolean };
-type Item = Exclude<ViewItem, { kind: "assistant" }> | { kind: "assistant"; parts: Part[] };
+type Item = Exclude<ViewItem, { kind: "assistant" }> | { kind: "assistant"; parts: Part[]; sources: WebSource[]; searched: WebSource[] };
 
 const SUGGESTIONS = [
   "Quais pontos vencem nos próximos 90 dias e o que você sugere fazer com eles?",
   "Qual dos meus cartões rende mais para um gasto de R$ 6.000 por mês?",
   "Vale a pena emitir uma passagem de R$ 1.800 que custa 60.000 milhas Smiles com R$ 90 de taxas?",
-  "Quanto falta de milhas para a minha próxima viagem planejada?",
+  "Planeje 5 dias em Lisboa em março: referências de passagens, hotéis e um roteiro, com as fontes.",
 ];
 
 const ACTION_LABEL: Record<string, string> = { lancamento: "Lançamento", transferencia: "Transferência", viagem: "Viagem", cotacao: "Cotação" };
@@ -86,12 +87,18 @@ export function AgentChat({
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [items, actions]);
 
-  const updateAssistant = (fn: (parts: Part[]) => Part[]) =>
+  const updateAssistant = (fn: (parts: Part[]) => Part[], addSources: WebSource[] = [], addSearched: WebSource[] = []) =>
     setItems((prev) => {
       const next = [...prev];
       const last = next[next.length - 1];
-      if (last?.kind === "assistant") next[next.length - 1] = { kind: "assistant", parts: fn([...last.parts]) };
-      else next.push({ kind: "assistant", parts: fn([]) });
+      if (last?.kind === "assistant") {
+        next[next.length - 1] = {
+          kind: "assistant",
+          parts: fn([...last.parts]),
+          sources: mergeSources(last.sources, addSources),
+          searched: mergeSources(last.searched, addSearched),
+        };
+      } else next.push({ kind: "assistant", parts: fn([]), sources: addSources, searched: addSearched });
       return next;
     });
 
@@ -113,7 +120,12 @@ export function AgentChat({
         updateAssistant((parts) => [...parts, { type: "tool", id: e.id, label: e.label, ok: true, running: true }]);
         break;
       case "tool_end":
-        updateAssistant((parts) => parts.map((p) => (p.type === "tool" && p.id === e.id ? { ...p, ok: e.ok, running: false } : p)));
+        updateAssistant((parts) =>
+          parts.map((p) => (p.type === "tool" && p.id === e.id ? { ...p, ok: e.ok, running: false, label: e.label ?? p.label } : p)),
+        );
+        break;
+      case "sources":
+        updateAssistant((parts) => parts, e.sources, e.searched);
         break;
       case "action":
         setActions((prev) => [...prev, { ...e.action, resultMessage: null }]);
@@ -234,7 +246,13 @@ export function AgentChat({
                           p.ok ? "text-ink-2" : "text-critical-ink",
                         )}
                       >
-                        {p.running ? <Loader2 className="size-3 animate-spin" aria-hidden /> : <Wrench className="size-3" aria-hidden />}
+                                {p.running ? (
+                          <Loader2 className="size-3 animate-spin" aria-hidden />
+                        ) : p.label.startsWith("Pesquis") ? (
+                          <Globe className="size-3" aria-hidden />
+                        ) : (
+                          <Wrench className="size-3" aria-hidden />
+                        )}
                         {p.label}
                         {!p.ok && " (erro)"}
                       </span>
@@ -247,6 +265,7 @@ export function AgentChat({
                     </div>
                   ),
                 )}
+                {(item.sources.length > 0 || item.searched.length > 0) && <Sources sources={item.sources} searched={item.searched} />}
               </div>
             </div>
           ),
@@ -302,9 +321,53 @@ export function AgentChat({
           )}
         </div>
         <p className="mt-1.5 px-2 text-[11px] text-muted">
-          Respostas geradas por IA a partir dos seus dados cadastrados. Confira valores importantes; o agente não acessa a internet nem dados de mercado.
+          Respostas geradas por IA a partir dos seus dados cadastrados. Confira valores importantes; preços e hotéis pesquisados na web são referências com fonte, sem garantia de disponibilidade.
         </p>
       </form>
+    </div>
+  );
+}
+
+function SourceLink({ s }: { s: WebSource }) {
+  return (
+    <a href={s.url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex min-w-0 items-center gap-1 text-accent hover:underline">
+      <span className="truncate">{s.title}</span>
+      <span className="shrink-0 text-muted">({hostOf(s.url)})</span>
+      <ExternalLink className="size-3 shrink-0" aria-hidden />
+    </a>
+  );
+}
+
+/** Fontes citadas na resposta e, recolhidas, todas as páginas que as buscas devolveram. */
+function Sources({ sources, searched }: { sources: WebSource[]; searched: WebSource[] }) {
+  return (
+    <div className="space-y-1.5 rounded-xl border border-line bg-surface-2/50 px-3 py-2 text-xs">
+      {sources.length > 0 && (
+        <>
+          <p className="font-medium text-ink-2">Fontes citadas ({sources.length})</p>
+          <ol className="space-y-0.5">
+            {sources.map((s, i) => (
+              <li key={s.url} className="flex min-w-0 gap-1.5">
+                <span className="text-muted tabular-nums">{i + 1}.</span>
+                <SourceLink s={s} />
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+      {searched.length > 0 && (
+        <details>
+          <summary className="cursor-pointer text-ink-2">Páginas encontradas nas buscas ({searched.length})</summary>
+          <ul className="mt-1 space-y-0.5">
+            {searched.map((s) => (
+              <li key={s.url} className="flex min-w-0">
+                <SourceLink s={s} />
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      <p className="text-muted">Referências públicas: preços e disponibilidade podem ter mudado. Confira no site antes de emitir ou reservar.</p>
     </div>
   );
 }

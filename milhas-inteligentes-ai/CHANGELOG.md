@@ -2,6 +2,32 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.10.0] - 2026-11-16 (Agente MILHAS AI com busca na web)
+
+### Adicionado
+- **Busca na web no chat do agente.** Ele pesquisa referências de passagens (dinheiro e milhas),
+  hotéis (inclusive resgate com pontos, como ALL Accor) e roteiros, e cita as fontes com links.
+- Durante a resposta aparece "Pesquisando na web", depois o termo pesquisado.
+- Abaixo da resposta: **Fontes citadas** (só links que apontam para páginas devolvidas pela busca;
+  um link que não veio da busca não entra) e, recolhida, a lista de **páginas encontradas nas buscas**.
+  Tudo fica salvo na conversa.
+- Regras no prompt: usar a web só quando precisa de informação atual; dados e contas da pessoa
+  vêm das ferramentas internas; preços e disponibilidade da web são referências públicas, sem
+  garantia; nunca afirmar disponibilidade; diferenciar estimativa de valor real; preferir o Radar
+  para promoções; oferecer registrar referências com `propor_cotacao` como estimativa com fonte.
+- Proteção contra instruções escondidas em páginas: conteúdo da web é tratado como informação,
+  nunca como instrução. Registrar algo continua exigindo confirmação na tela.
+- Variável `AGENT_WEB_SEARCH` (padrão `true`; `false` desliga). Até 8 buscas por chamada.
+- Nova sugestão na tela inicial do agente: planejar 5 dias em Lisboa.
+
+### Corrigido
+- Transbordo horizontal no celular na página do agente com respostas longas.
+
+### Testes
+- 6 testes novos (fontes, links e conversa com busca simulada), 105 no total.
+- Teste real: "4 dias em Santiago do Chile" fez 8 buscas, citou 14 fontes conferidas e custou
+  ~US$ 0,31; a conversa reaberta mantém pesquisas e fontes.
+
 ## [0.9.0] - 2026-11-15 (Etapa complementar: Planejador inteligente de viagens)
 
 ### Adicionado
