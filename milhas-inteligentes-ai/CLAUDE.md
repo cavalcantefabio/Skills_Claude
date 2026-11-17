@@ -7,7 +7,7 @@ Guia para agentes (Claude Code) que trabalham neste projeto. Leia antes de mudar
 ## O que é
 
 Plataforma web para gerenciar pontos, milhas, cartões de crédito e viagens.
-**Versão 0.10.0.** Etapa 1 aprovada; Etapas 2 e 3 (entrega 1), ciclo de melhoria contínua e Planejador de viagens entregues; agente com busca na web.
+**Versão 0.11.0.** Etapa 1 aprovada; Etapas 2 e 3 (entrega 1), ciclo de melhoria contínua e Planejador de viagens entregues; agente com busca na web.
 Radar, recomendações e evolução contínua são etapas seguintes e dependem de aprovação.
 
 ## Stack e decisões
@@ -103,6 +103,22 @@ tests/                unit/, integration/, e2e/smoke.mjs
 - Agente: `analisar_viagem`, `consultar_viagens`, `propor_viagem`, `propor_cotacao`.
 - Testes locais: se o login do demo travar depois de várias rodadas do e2e, é o limite por IP
   (30 falhas/15 min de `127.0.0.1`); limpe com `delete from login_attempts` no banco local.
+
+## Alertas de Voos (0.11.0)
+
+- Lugares: `src/lib/airports.ts` (lista curada; `searchPlaces`, `allPlaces`, `Place` = rótulo + códigos IATA).
+  O aviso guarda os lugares escolhidos (`*_places`, jsonb) e os códigos expandidos (`*_codes`, text[]).
+- Regra pura: `src/lib/flight-alerts.ts` (`mismatch`/`matchesAlert`, `alertWindow`, `wouldHaveFired`).
+  Tetos são por trecho: voo de ida e volta entra pela metade (`dealLite`). Voo sem data não confirma
+  uma janela de datas. Cartão: `src/lib/flight-deal.ts` (`dealInsight`, premissa 1:1 dos bancos).
+- Busca: `src/server/flights/run.ts` (`RADAR_MODEL`, `web_search` + `web_fetch` restritos a
+  `FLIGHT_DOMAINS`, ferramenta `registrar_voos`). Se a API recusar `web_fetch` (ambientes com rede
+  restrita), repete sem ela: com execução de código, os resultados da busca já trazem o texto
+  (`content`). Descarta voos com embarque passado, publicados há mais de 12 dias, origem = destino ou
+  sem preço; não repete voos já encontrados. Uso com `source: "voos"`.
+- Disparos: `route_alert_hits` (único por aviso e voo), via `recordHits` depois de cada busca e ao criar,
+  editar ou reativar um aviso. `/voos` marca como vistos; "Novo" = disparo das últimas 24 h; os não vistos
+  aparecem em `computeAlerts`.
 
 ## Exportação
 

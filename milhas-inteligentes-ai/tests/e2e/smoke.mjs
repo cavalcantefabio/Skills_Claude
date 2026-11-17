@@ -214,6 +214,32 @@ try {
   assert((await page.getByText(/já venceram/).count()) === 0, "após registrar a expiração, o aviso some");
   assert((await page.textContent("main")).includes("Pontos vencidos em 30/06/2025"), "histórico mostra a expiração com a data do vencimento");
 
+  console.log("Alertas de voos");
+  await page.goto(`${BASE}/voos`);
+  await page.getByRole("button", { name: "Criar meu primeiro aviso" }).click();
+  await page.getByRole("dialog").waitFor();
+  await page.getByRole("button", { name: "Criar aviso" }).click();
+  await page.getByText("Escolha a origem, o destino ou os dois.").waitFor();
+  assert(true, "aviso sem origem nem destino é recusado");
+  await page.getByRole("combobox").first().fill("sudeste");
+  await page.getByRole("option", { name: /Região Sudeste/ }).click();
+  await page.getByRole("combobox").nth(1).fill("LIS");
+  await page.getByRole("option", { name: /Lisboa \(LIS\)/ }).click();
+  await page.getByRole("button", { name: "Executiva" }).click();
+  await page.getByRole("button", { name: "+ Definir um teto" }).click();
+  await page.getByLabel(/Até quantas milhas/).fill("150.000");
+  await page.getByRole("button", { name: "Criar aviso" }).click();
+  await page.getByText(/Aviso salvo\./).waitFor();
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  const aside = await page.locator("aside.space-y-4").textContent();
+  assert(aside.includes("Região Sudeste → Lisboa (LIS)") && aside.includes("executiva · até 150.000 milhas"), "aviso de rota criado aparece em Meus avisos");
+  await page.getByRole("button", { name: "Pausar aviso" }).click();
+  await page.getByText("Pausado").waitFor();
+  assert(true, "aviso pode ser pausado");
+  await page.getByRole("button", { name: "Excluir aviso" }).click();
+  await page.getByText("Nenhum aviso ainda").waitFor();
+  assert(true, "aviso pode ser excluído");
+
   console.log("Exportação de dados");
   await page.goto(`${BASE}/configuracoes`);
   const fs = await import("node:fs/promises");

@@ -27,7 +27,7 @@ export async function buildExport(userId: string) {
     .where(eq(schema.users.id, userId));
 
   const tripIds = (await db.select({ id: schema.trips.id }).from(schema.trips).where(eq(schema.trips.userId, userId))).map((t) => t.id);
-  const [accounts, lots, transactions, cards, trips, customPrograms, simulations, conversations, radar, quotes] = await Promise.all([
+  const [accounts, lots, transactions, cards, trips, customPrograms, simulations, conversations, radar, quotes, routeAlerts, flightDeals] = await Promise.all([
     listAccounts(userId, profileRow?.profile.expiryAlertDays ?? 90),
     listLots(userId),
     listTransactions(userId, { limit: 100_000 }),
@@ -38,6 +38,8 @@ export async function buildExport(userId: string) {
     db.select().from(schema.agentConversations).where(eq(schema.agentConversations.userId, userId)).orderBy(asc(schema.agentConversations.createdAt)),
     latestRadar(userId),
     listTripQuotes(userId, tripIds),
+    db.select().from(schema.routeAlerts).where(eq(schema.routeAlerts.userId, userId)).orderBy(asc(schema.routeAlerts.createdAt)),
+    db.select().from(schema.flightDeals).where(eq(schema.flightDeals.userId, userId)).orderBy(asc(schema.flightDeals.createdAt)),
   ]);
 
   // Conversas do agente: só o texto visível (sem blocos internos de raciocínio ou ferramentas).
@@ -148,6 +150,34 @@ export async function buildExport(userId: string) {
     })),
     simulacoes: simulations.map((s) => ({ calculadora: s.calculator, titulo: s.title, entradas: s.input, resultado: s.result, criada_em: s.createdAt.toISOString() })),
     conversas_agente: conversationExport,
+    avisos_de_rota: routeAlerts.map((a) => ({
+      origem: a.originPlaces,
+      destino: a.destinationPlaces,
+      data: a.dateMode,
+      mes: a.month,
+      de: a.dateFrom,
+      ate: a.dateTo,
+      cabine: a.cabin,
+      pago_com: a.pay,
+      max_milhas: a.maxMiles,
+      max_reais: num(a.maxCashBrl),
+      ativo: a.active,
+      criado_em: a.createdAt.toISOString(),
+    })),
+    voos_encontrados: flightDeals.map((d) => ({
+      origem: d.origin,
+      destino: d.destination,
+      tipo: d.kind,
+      programa: d.programName,
+      milhas: d.miles,
+      taxas_brl: num(d.taxesBrl),
+      preco_brl: num(d.cashBrl),
+      ida_e_volta: d.roundTrip,
+      de: d.dateFrom,
+      ate: d.dateTo,
+      fonte: d.sourceUrl,
+      encontrado_em: d.createdAt.toISOString(),
+    })),
     radar_ultima_pesquisa: radar
       ? {
           em: (radar.run.finishedAt ?? radar.run.startedAt).toISOString(),
