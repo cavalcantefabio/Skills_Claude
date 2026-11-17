@@ -7,7 +7,7 @@ Guia para agentes (Claude Code) que trabalham neste projeto. Leia antes de mudar
 ## O que é
 
 Plataforma web para gerenciar pontos, milhas, cartões de crédito e viagens.
-**Versão 0.12.0.** Etapa 1 aprovada; Etapas 2 e 3 (entrega 1), ciclo de melhoria contínua e Planejador de viagens entregues; agente com busca na web.
+**Versão 0.13.0.** Etapa 1 aprovada; Etapas 2 e 3 (entrega 1), ciclo de melhoria contínua e Planejador de viagens entregues; agente com busca na web.
 Radar, recomendações e evolução contínua são etapas seguintes e dependem de aprovação.
 
 ## Stack e decisões
@@ -134,6 +134,15 @@ tests/                unit/, integration/, e2e/smoke.mjs
   passo). Inscrições não entram no backup (são chaves do aparelho).
 - Headless Chromium nega notificações; para testar a tela, use `channel: "chromium"`. A inscrição real
   precisa de acesso ao serviço de push do navegador (FCM/Apple).
+
+## Navegação no celular (0.13.0)
+
+- `src/components/layout/sidebar.tsx`: abaixo de `lg`, barra superior só com o logo e `TabBar` fixa embaixo
+  (`TABS` + botão "Mais", que abre a gaveta com o menu completo `NAV`). Contador da aba Voos vem do layout
+  (`unseenHitCount`) e some na própria página.
+- Safe areas: `viewportFit: "cover"` no layout raiz; barras usam `env(safe-area-inset-*)`; o `main` tem
+  `pb-[calc(6rem+env(safe-area-inset-bottom))]` no celular. Elementos presos ao rodapé (ex.: campo do agente)
+  precisam ficar acima da barra (`bottom-[calc(3.5rem+env(safe-area-inset-bottom))] lg:bottom-0`).
 
 ## Exportação
 

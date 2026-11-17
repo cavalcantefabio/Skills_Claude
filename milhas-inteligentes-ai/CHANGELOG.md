@@ -2,6 +2,24 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.13.0] - 2026-11-17 (Barra de abas no celular)
+
+### Adicionado
+- **Barra de abas no celular** (abaixo de 1024 px): Início, Voos, Radar, Agente e Mais. "Mais" abre o
+  menu completo e fica marcado nas páginas que estão nele. No computador continua o menu lateral.
+- **Contador na aba Voos** com os voos novos que dispararam seus avisos e você ainda não viu.
+- App instalado no iPhone ocupa a tela toda: barras de cima e de baixo respeitam o entalhe e a barra
+  de início (`viewport-fit=cover` + `safe-area-inset`).
+
+### Alterado
+- Campo de mensagem do agente fica logo acima da barra de abas no celular.
+- O botão de menu do topo no celular foi trocado pela aba "Mais".
+
+### Testes
+- Teste ponta a ponta com 5 verificações novas (abas no celular e no computador, aba marcada, menu
+  "Mais" e sem rolagem lateral); 126 testes vitest.
+- Confirmado no iPhone: a notificação de teste da 0.12.0 chegou com o app instalado na Tela de Início.
+
 ## [0.12.0] - 2026-11-17 (Busca automática de voos e notificações no celular)
 
 ### Adicionado

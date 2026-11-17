@@ -278,6 +278,25 @@ try {
   assert(true, "11ª tentativa no mesmo e-mail é bloqueada");
   await ctx2.close();
 
+  console.log("Abas no celular");
+  // Mesma sessão do teste, em uma janela com tamanho de celular.
+  const mobileCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await mobileCtx.addCookies(await page.context().cookies());
+  const mobile = await mobileCtx.newPage();
+  await mobile.goto(`${BASE}/`);
+  const tabs = mobile.getByRole("navigation", { name: "Abas" });
+  assert(await tabs.isVisible(), "barra de abas aparece no celular");
+  assert(!(await page.getByRole("navigation", { name: "Abas" }).isVisible()), "barra de abas não aparece no computador");
+  await tabs.getByRole("link", { name: /Voos/ }).click();
+  await mobile.waitForURL("**/voos");
+  assert((await tabs.getByRole("link", { name: /Voos/ }).getAttribute("aria-current")) === "page", "aba Voos abre Alertas de Voos e fica marcada");
+  await tabs.getByRole("button", { name: "Mais" }).click();
+  await mobile.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Calculadoras" }).click();
+  await mobile.waitForURL("**/calculadoras");
+  assert(true, "aba Mais abre o menu completo");
+  assert((await mobile.evaluate(() => document.documentElement.scrollWidth)) <= 390, "sem rolagem lateral no celular");
+  await mobileCtx.close();
+
   console.log("Isolamento entre usuários");
   const cardUrl = await page.evaluate(async () => {
     const r = await fetch("/cartoes");
