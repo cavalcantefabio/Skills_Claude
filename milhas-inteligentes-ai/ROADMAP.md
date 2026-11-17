@@ -80,8 +80,9 @@
       milhas ou dinheiro, teto de preço; prévia de quantas vezes teria tocado em 30 dias
 - [x] Busca de alertas publicados em blogs de milhas, com fonte; feed com "Com os seus saldos"
 - [x] Disparos com selo no feed e item em Alertas
-- [ ] Notificação no celular (app instalável + push)
-- [ ] Busca automática (agendada) com teto de custo
+- [x] Notificação no celular (app instalável + push) (0.12.0)
+- [x] Busca automática às 8h e 20h com limite diário próprio (0.12.0)
+- [ ] Horário de silêncio e escolha de horários da busca automática
 - [ ] Barra de abas no celular e Estratégias (Radar) em formato de feed
 - [ ] Preço de referência do milheiro no mercado
 - Limite: a disponibilidade real de assentos não é consultada (sem API pública dos programas); os

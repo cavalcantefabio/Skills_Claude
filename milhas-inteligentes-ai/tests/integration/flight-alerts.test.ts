@@ -176,3 +176,19 @@ describe("busca de voos e avisos de rota", () => {
     expect(await svc.recordHits(userId, { alertIds: [paused.id] })).toBe(0);
   });
 });
+
+describe("buscas automáticas", () => {
+  it("têm limite próprio, separado do botão", async () => {
+    const [u] = await db.insert(schema.users).values({ email: "auto@teste.dev", passwordHash: "x" }).returning();
+    await db.insert(schema.profiles).values({ userId: u.id, name: "A" });
+    const ok = () => fakeClient([register([])]).client;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await flights.runFlightSearch({ client: ok() as any, userId: u.id, dailyLimit: 1 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await flights.runFlightSearch({ client: ok() as any, userId: u.id, dailyLimit: 1, trigger: "automatica" });
+    expect(await flights.flightRunsToday(u.id, "manual")).toBe(1);
+    expect(await flights.flightRunsToday(u.id, "automatica")).toBe(1);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await expect(flights.runFlightSearch({ client: ok() as any, userId: u.id, dailyLimit: 1, trigger: "automatica" })).rejects.toThrow(/automáticas/);
+  });
+});

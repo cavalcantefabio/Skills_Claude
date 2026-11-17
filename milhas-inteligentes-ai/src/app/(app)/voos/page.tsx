@@ -26,6 +26,9 @@ import { dealHeadline, dealInsight, dealWhen, milesShort, type AccountLite } fro
 import { diffDays, todayISO } from "@/lib/dates";
 import { formatBRL, formatDate } from "@/lib/format";
 import { formatUSD } from "@/lib/pricing";
+import { NotificationsCard } from "@/components/push/notifications-card";
+import { vapidKeys } from "@/server/push/send";
+import { countDevices } from "@/server/push/devices";
 
 export const metadata: Metadata = { title: "Alertas de Voos" };
 
@@ -75,7 +78,7 @@ export default async function VoosPage({ searchParams }: { searchParams: Promise
   const user = await requireUser();
   const sp = await searchParams;
   const today = todayISO();
-  const [alerts, deals, hits, preview, accounts, lastRun, runsToday] = await Promise.all([
+  const [alerts, deals, hits, preview, accounts, lastRun, runsToday, vapid, devices] = await Promise.all([
     listRouteAlerts(user.id),
     listDeals(user.id),
     hitsByDeal(user.id),
@@ -83,6 +86,8 @@ export default async function VoosPage({ searchParams }: { searchParams: Promise
     listAccounts(user.id),
     lastFlightRun(user.id),
     flightRunsToday(user.id),
+    vapidKeys(),
+    countDevices(user.id),
   ]);
   // A pessoa abriu a página: os disparos passam a "vistos" (o selo "Novo" aparece só desta vez).
   if ([...hits.values()].some((h) => h.unseen)) await markHitsSeen(user.id);
@@ -275,10 +280,23 @@ export default async function VoosPage({ searchParams }: { searchParams: Promise
               })}
             </CardBody>
           </Card>
+          <NotificationsCard vapidPublicKey={vapid.publicKey} devices={devices} compact />
+          <Card>
+            <CardBody className="space-y-1 text-xs text-ink-2">
+              <p className="font-medium text-ink">Busca automática</p>
+              {env.CRON_SECRET ? (
+                <p>
+                  Às 8h e às 20h (Brasília), para os avisos ativos. {devices ? "Voos novos chegam como notificação." : "Ative as notificações para ser avisado no celular."}
+                </p>
+              ) : (
+                <p>Ainda não configurada: falta a senha da agenda (CRON_SECRET). Enquanto isso, use o botão “Buscar voos agora”.</p>
+              )}
+            </CardBody>
+          </Card>
           {lastRun && (
             <Card>
               <CardBody className="space-y-1 text-xs text-ink-2">
-                <p className="font-medium text-ink">Última busca</p>
+                <p className="font-medium text-ink">Última busca {lastRun.trigger === "automatica" ? "(automática)" : ""}</p>
                 <p>
                   {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(lastRun.startedAt)} ·{" "}
                   {lastRun.status === "concluida" ? `${lastRun.found} voo(s) novo(s)` : lastRun.status === "falhou" ? `falhou: ${lastRun.error ?? ""}` : "em andamento"} ·{" "}
@@ -286,7 +304,7 @@ export default async function VoosPage({ searchParams }: { searchParams: Promise
                 </p>
                 {lastRun.summary && <p className="text-muted">{lastRun.summary}</p>}
                 <p className="text-muted">
-                  Buscas hoje: {runsToday} de {env.FLIGHT_SEARCH_DAILY_LIMIT}.
+                  Buscas pelo botão hoje: {runsToday} de {env.FLIGHT_SEARCH_DAILY_LIMIT}.
                 </p>
               </CardBody>
             </Card>

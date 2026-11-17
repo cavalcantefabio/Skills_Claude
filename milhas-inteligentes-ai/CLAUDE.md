@@ -7,7 +7,7 @@ Guia para agentes (Claude Code) que trabalham neste projeto. Leia antes de mudar
 ## O que é
 
 Plataforma web para gerenciar pontos, milhas, cartões de crédito e viagens.
-**Versão 0.11.0.** Etapa 1 aprovada; Etapas 2 e 3 (entrega 1), ciclo de melhoria contínua e Planejador de viagens entregues; agente com busca na web.
+**Versão 0.12.0.** Etapa 1 aprovada; Etapas 2 e 3 (entrega 1), ciclo de melhoria contínua e Planejador de viagens entregues; agente com busca na web.
 Radar, recomendações e evolução contínua são etapas seguintes e dependem de aprovação.
 
 ## Stack e decisões
@@ -119,6 +119,21 @@ tests/                unit/, integration/, e2e/smoke.mjs
 - Disparos: `route_alert_hits` (único por aviso e voo), via `recordHits` depois de cada busca e ao criar,
   editar ou reativar um aviso. `/voos` marca como vistos; "Novo" = disparo das últimas 24 h; os não vistos
   aparecem em `computeAlerts`.
+
+## Busca automática e notificações (0.12.0)
+
+- Agenda: `.github/workflows/milhas-busca-voos.yml` (raiz do repositório) acorda o app e chama
+  `POST /api/cron/voos` com `Authorization: Bearer CRON_SECRET` (comparação em tempo constante). A rota é
+  pública no `proxy.ts` (`/api/cron`) e tem a própria senha; sem `CRON_SECRET` responde 503.
+  `runFlightSearch({ trigger: "automatica" })` tem limite próprio (`FLIGHT_AUTO_SEARCHES_PER_DAY`).
+- Push: `src/server/push/send.ts` (`vapidKeys` gera e guarda cifradas em `app_secrets`; `sendPush` apaga
+  inscrições 404/410 ou com 5 falhas; `notifyFlightHits` resume os voos novos com disparo). Só a busca
+  automática notifica (na manual a pessoa está na tela). `public/sw.js` só trata `push` e
+  `notificationclick` (sem cache). Manifesto em `src/app/manifest.ts`; ícones em `public/icons/`.
+- Interface: `src/components/push/notifications-card.tsx` (iPhone fora da Tela de Início mostra o passo a
+  passo). Inscrições não entram no backup (são chaves do aparelho).
+- Headless Chromium nega notificações; para testar a tela, use `channel: "chromium"`. A inscrição real
+  precisa de acesso ao serviço de push do navegador (FCM/Apple).
 
 ## Exportação
 

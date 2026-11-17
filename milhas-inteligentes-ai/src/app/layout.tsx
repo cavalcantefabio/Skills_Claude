@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/layout/theme-provider";
 export const metadata: Metadata = {
   title: { default: "Milhas Inteligentes AI", template: "%s · Milhas Inteligentes AI" },
   description: "Gestão de pontos, milhas, cartões de crédito e viagens.",
+  appleWebApp: { capable: true, title: "Milhas AI", statusBarStyle: "black-translucent" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {

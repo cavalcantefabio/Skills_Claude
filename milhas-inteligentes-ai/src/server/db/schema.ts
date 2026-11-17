@@ -666,6 +666,8 @@ export const flightRuns = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     status: radarRunStatus("status").notNull().default("executando"),
+    /** "manual" (botão) ou "automatica" (agendada). */
+    trigger: text("trigger").notNull().default("manual"),
     summary: text("summary"),
     error: text("error"),
     found: integer("found").notNull().default(0),
@@ -738,3 +740,38 @@ export const routeAlertHits = pgTable(
   },
   (t) => [uniqueIndex("route_alert_hits_uq").on(t.alertId, t.dealId), index("route_alert_hits_user_idx").on(t.userId, t.seenAt)],
 );
+
+/* ------------------------------------------------------------------ */
+/* Notificações no celular (Web Push) e busca automática (0.12.0)       */
+/* ------------------------------------------------------------------ */
+
+/** Um navegador/celular que aceitou receber notificações. */
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    /** Rótulo do aparelho (ex.: "iPhone", "Chrome no Windows"). */
+    device: text("device"),
+    lastSuccessAt: timestamp("last_success_at", { withTimezone: true }),
+    failures: integer("failures").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("push_subscriptions_endpoint_uq").on(t.endpoint),
+    index("push_subscriptions_user_idx").on(t.userId),
+    check("push_subscriptions_endpoint_chk", sql`${t.endpoint} ~* '^https://'`),
+  ],
+);
+
+/** Segredos gerados pelo próprio app (ex.: chaves VAPID), cifrados com APP_ENCRYPTION_KEY. */
+export const appSecrets = pgTable("app_secrets", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
