@@ -95,13 +95,17 @@ Regras:
 - Faça no máximo ${MAX_SEARCHES} buscas e abra no máximo ${MAX_FETCHES} páginas com web_fetch. Dê prioridade às rotas dos avisos da pessoa e às saídas dos aeroportos dela.`;
 }
 
-export async function flightRunsToday(userId: string) {
+export type FlightRunTrigger = "manual" | "automatica";
+
+/** Buscas de hoje por origem (as automáticas não gastam o limite do botão). */
+export async function flightRunsToday(userId: string, trigger: FlightRunTrigger = "manual") {
   const [r] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(schema.flightRuns)
     .where(
       and(
         eq(schema.flightRuns.userId, userId),
+        eq(schema.flightRuns.trigger, trigger),
         gte(schema.flightRuns.startedAt, sql`date_trunc('day', now() at time zone 'America/Sao_Paulo') at time zone 'America/Sao_Paulo'`),
       ),
     );
@@ -111,7 +115,17 @@ export async function flightRunsToday(userId: string) {
 const keyOf = (d: { origin: string; destination: string; kind: string; miles: number | null; cashBrl: string | number | null; dateFrom: string | null; programSlug: string | null }) =>
   [d.origin, d.destination, d.kind, d.miles ?? "", d.cashBrl == null ? "" : Number(d.cashBrl), d.dateFrom ?? "", d.programSlug ?? ""].join("|");
 
-export async function runFlightSearch({ client, userId, dailyLimit }: { client: AgentClient; userId: string; dailyLimit: number }) {
+export async function runFlightSearch({
+  client,
+  userId,
+  dailyLimit,
+  trigger = "manual",
+}: {
+  client: AgentClient;
+  userId: string;
+  dailyLimit: number;
+  trigger?: FlightRunTrigger;
+}) {
   const [running] = await db
     .select({ id: schema.flightRuns.id })
     .from(schema.flightRuns)
@@ -123,9 +137,11 @@ export async function runFlightSearch({ client, userId, dailyLimit }: { client: 
       ),
     );
   if (running) throw new DomainError("Já existe uma busca de voos em andamento.");
-  if ((await flightRunsToday(userId)) >= dailyLimit) throw new DomainError(`Limite de ${dailyLimit} buscas de voos por dia atingido.`);
+  if ((await flightRunsToday(userId, trigger)) >= dailyLimit) {
+    throw new DomainError(`Limite de ${dailyLimit} buscas ${trigger === "automatica" ? "automáticas " : ""}de voos por dia atingido.`);
+  }
 
-  const [run] = await db.insert(schema.flightRuns).values({ userId }).returning();
+  const [run] = await db.insert(schema.flightRuns).values({ userId, trigger }).returning();
   const catalog = await db.select({ slug: schema.programs.slug, name: schema.programs.name }).from(schema.programs).where(sql`${schema.programs.ownerUserId} is null`);
   const [accounts, alerts, trips] = await Promise.all([
     listAccounts(userId),
@@ -299,7 +315,7 @@ export async function runFlightSearch({ client, userId, dailyLimit }: { client: 
       .update(schema.flightRuns)
       .set({ status: "concluida", summary: registered.resumo, found: inserted.length, webSearches: totalSearches, costUsd: totalUsd.toFixed(6), finishedAt: new Date() })
       .where(eq(schema.flightRuns.id, run.id));
-    return { runId: run.id, found: inserted.length, hits, costUsd: totalUsd };
+    return { runId: run.id, found: inserted.length, hits, dealIds: inserted.map((d) => d.id), costUsd: totalUsd };
   } catch (err) {
     const message = err instanceof DomainError ? err.message : "Falha ao buscar voos.";
     await db

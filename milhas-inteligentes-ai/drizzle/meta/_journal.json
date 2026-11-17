@@ -85,6 +85,13 @@
       "when": 1794884666426,
       "tag": "0011_alertas_voos",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794886602603,
+      "tag": "0012_notificacoes",
+      "breakpoints": true
     }
   ]
 }

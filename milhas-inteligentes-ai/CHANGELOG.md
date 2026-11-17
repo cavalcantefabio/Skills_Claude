@@ -2,6 +2,30 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.12.0] - 2026-11-17 (Busca automática de voos e notificações no celular)
+
+### Adicionado
+- **Busca automática** de Alertas de Voos por volta de 8h e 20h (Brasília): o GitHub Actions
+  (`.github/workflows/milhas-busca-voos.yml`) acorda o app e chama `POST /api/cron/voos` com a senha
+  `CRON_SECRET`. Roda só para quem tem aviso ativo; até `FLIGHT_AUTO_SEARCHES_PER_DAY` (padrão 2) por
+  dia, sem gastar o limite do botão.
+- **Notificações no celular** (Web Push): "Voo para o seu aviso" com rota, milhas e data (ou o resumo
+  de vários voos, o mais barato primeiro). Tocar abre Alertas de Voos.
+- **App instalável** (manifesto, ícones e service worker só de notificações). No iPhone, passo a passo
+  para adicionar à Tela de Início (exigência do iOS para notificações).
+- Configurações → **Notificações no celular**: ativar e desativar por aparelho e enviar teste. Em
+  Alertas de Voos, chamada para ativar e situação da busca automática.
+- Chaves das notificações (VAPID) geradas pelo app e guardadas cifradas (`app_secrets`); aparelhos
+  em `push_subscriptions` (inscrição vencida é apagada sozinha); `flight_runs.trigger` (migração 0012).
+
+### Testes
+- 5 testes novos (chaves, envio com inscrição vencida, resumo dos voos, senha da agenda e limite
+  separado das buscas automáticas), 126 no total.
+- Teste real da rota da agenda: 8 buscas, 1 voo novo (GRU → MIA, LATAM Pass) que disparou um aviso;
+  US$ 0,30 em 39 s.
+- Não testado aqui: a inscrição de um aparelho, porque este ambiente não acessa o serviço de push do
+  Google. Testar no celular com "Enviar teste".
+
 ## [0.11.0] - 2026-11-17 (Alertas de Voos com avisos de rota)
 
 ### Adicionado

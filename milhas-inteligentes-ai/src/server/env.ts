@@ -34,6 +34,18 @@ const schema = z.object({
   RADAR_DAILY_LIMIT: z.coerce.number().int().positive().default(3),
   /** Buscas de voos com milhas (Alertas de Voos) por usuário por dia (cada uma usa busca na web). */
   FLIGHT_SEARCH_DAILY_LIMIT: z.coerce.number().int().positive().default(4),
+  /** Buscas automáticas de voos por dia (a agenda chama /api/cron/voos; o padrão cobre 8h e 20h). */
+  FLIGHT_AUTO_SEARCHES_PER_DAY: z.coerce.number().int().min(0).max(6).default(2),
+  /** Senha da agenda (GitHub Actions) para chamar /api/cron/voos. Sem ela, a rota fica desligada. */
+  CRON_SECRET: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().min(24, "CRON_SECRET precisa de pelo menos 24 caracteres.").optional(),
+  ),
+  /** Contato exigido pelos serviços de notificação (mailto: ou https:). */
+  VAPID_SUBJECT: z
+    .string()
+    .regex(/^(mailto:|https:\/\/)/)
+    .default("mailto:alertas@milhas-inteligentes.app"),
   /** Pesquisas de referência de viagem por usuário por dia (cada uma usa busca na web). */
   TRIP_RESEARCH_DAILY_LIMIT: z.coerce.number().int().positive().default(5),
   /** Conexões simultâneas por instância. Em hospedagem serverless (Vercel), use poucas. */

@@ -5,11 +5,15 @@ import { changePassword, logoutEverywhere, updateProfile } from "@/server/action
 import { PasswordForm, ProfileForm } from "@/components/forms/settings-forms";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Button, Card, CardBody, CardHeader, PageHeader, buttonClass } from "@/components/ui";
+import { NotificationsCard } from "@/components/push/notifications-card";
+import { vapidKeys } from "@/server/push/send";
+import { countDevices } from "@/server/push/devices";
 
 export const metadata: Metadata = { title: "Configurações" };
 
 export default async function SettingsPage() {
   const user = await requireUser();
+  const [{ publicKey }, devices] = await Promise.all([vapidKeys(), countDevices(user.id)]);
   return (
     <>
       <PageHeader title="Configurações" description="Perfil, preferências de cálculo, aparência e segurança." />
@@ -38,6 +42,12 @@ export default async function SettingsPage() {
                 conversas com o agente e a última pesquisa do Radar. Não inclui sua senha. Guarde o arquivo em local seguro: ele contém
                 dados financeiros.
               </p>
+            </CardBody>
+          </Card>
+          <Card id="notificacoes">
+            <CardHeader title="Notificações no celular" description="Avisos de voos encontrados pela busca automática." />
+            <CardBody>
+              <NotificationsCard vapidPublicKey={publicKey} devices={devices} />
             </CardBody>
           </Card>
           <Card>
