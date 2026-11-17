@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LogOut, Menu, X } from "lucide-react";
+import { Bot, LayoutDashboard, LogOut, MoreHorizontal, PlaneTakeoff, Radar, X } from "lucide-react";
 import { NAV } from "./nav";
 import { Logo } from "./logo";
 import { cx } from "@/components/ui";
@@ -70,7 +70,57 @@ function SidebarContent({ userName, email, logout, onNavigate }: SidebarProps & 
   );
 }
 
-type SidebarProps = { userName: string; email: string; logout: () => Promise<void> };
+type SidebarProps = { userName: string; email: string; logout: () => Promise<void>; unseenFlights?: number };
+
+/** Abas fixas no celular; o resto do menu fica em "Mais". */
+const TABS = [
+  { href: "/", label: "Início", icon: LayoutDashboard },
+  { href: "/voos", label: "Voos", icon: PlaneTakeoff },
+  { href: "/radar", label: "Radar", icon: Radar },
+  { href: "/agente", label: "Agente", icon: Bot },
+] as const;
+
+function TabBar({ onMore, moreOpen, unseenFlights = 0 }: { onMore: () => void; moreOpen: boolean; unseenFlights?: number }) {
+  const pathname = usePathname();
+  const inTabs = TABS.some((t) => isActive(pathname, t.href));
+  const item = "flex min-w-0 flex-1 flex-col items-center gap-1 pt-2 pb-1.5 text-[11px] font-medium transition-colors";
+  return (
+    <nav
+      aria-label="Abas"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-sidebar/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+    >
+      <div className="mx-auto flex max-w-lg">
+        {TABS.map(({ href, label, icon: Icon }) => {
+          const active = isActive(pathname, href);
+          const badge = href === "/voos" && !active && unseenFlights > 0 ? unseenFlights : 0;
+          return (
+            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={cx(item, active ? "text-[#8fb0ff]" : "text-sidebar-muted hover:text-sidebar-ink")}>
+              <span className="relative">
+                <Icon className="size-6" aria-hidden />
+                {badge > 0 && (
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[18px] rounded-full bg-[#f04f43] px-1 text-center text-[10px] leading-[18px] font-semibold text-white">
+                    {badge > 99 ? "99+" : badge}
+                    <span className="sr-only"> voos novos para os seus avisos</span>
+                  </span>
+                )}
+              </span>
+              {label}
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          onClick={onMore}
+          aria-expanded={moreOpen}
+          className={cx(item, !inTabs || moreOpen ? "text-[#8fb0ff]" : "text-sidebar-muted hover:text-sidebar-ink")}
+        >
+          <MoreHorizontal className="size-6" aria-hidden />
+          Mais
+        </button>
+      </div>
+    </nav>
+  );
+}
 
 export function Sidebar(props: SidebarProps) {
   const [open, setOpen] = useState(false);
@@ -86,19 +136,14 @@ export function Sidebar(props: SidebarProps) {
         <SidebarContent {...props} />
       </aside>
 
-      {/* Barra superior no celular */}
-      <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-white/8 bg-sidebar px-4 lg:hidden">
-        <Logo compact />
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Abrir menu"
-          aria-expanded={open}
-          className="grid size-9 place-items-center rounded-lg text-sidebar-ink hover:bg-sidebar-active"
-        >
-          <Menu className="size-5" aria-hidden />
-        </button>
+      {/* Barra superior no celular (respeita o entalhe do iPhone no app instalado) */}
+      <div className="sticky top-0 z-30 border-b border-white/8 bg-sidebar pt-[env(safe-area-inset-top)] lg:hidden">
+        <div className="flex h-14 items-center px-4">
+          <Logo compact />
+        </div>
       </div>
+
+      <TabBar onMore={() => setOpen(true)} moreOpen={open} unseenFlights={props.unseenFlights} />
 
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
@@ -108,12 +153,12 @@ export function Sidebar(props: SidebarProps) {
             aria-label="Fechar menu"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute inset-y-0 left-0 w-[280px] max-w-[85vw] bg-sidebar shadow-2xl">
+          <div className="absolute inset-y-0 left-0 w-[280px] max-w-[85vw] bg-sidebar pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] shadow-2xl">
             <button
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Fechar menu"
-              className="absolute right-3 top-4 grid size-9 place-items-center rounded-lg text-sidebar-ink hover:bg-sidebar-active"
+              className="absolute right-3 top-[calc(env(safe-area-inset-top)+1rem)] grid size-9 place-items-center rounded-lg text-sidebar-ink hover:bg-sidebar-active"
             >
               <X className="size-5" aria-hidden />
             </button>

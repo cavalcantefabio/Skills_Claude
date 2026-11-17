@@ -283,7 +283,7 @@ export function AgentChat({
           e.preventDefault();
           send(input);
         }}
-        className="sticky bottom-0 -mx-1 bg-bg/90 px-1 pb-4 pt-2 backdrop-blur"
+        className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] -mx-1 bg-bg/90 px-1 pb-4 pt-2 backdrop-blur lg:bottom-0"
       >
         {prepared && input && (
           <p className="mb-2 rounded-xl bg-accent-soft px-3 py-2 text-xs text-accent-soft-ink">

@@ -83,7 +83,8 @@
 - [x] Notificação no celular (app instalável + push) (0.12.0)
 - [x] Busca automática às 8h e 20h com limite diário próprio (0.12.0)
 - [ ] Horário de silêncio e escolha de horários da busca automática
-- [ ] Barra de abas no celular e Estratégias (Radar) em formato de feed
+- [x] Barra de abas no celular (0.13.0)
+- [ ] Estratégias (Radar) em formato de feed
 - [ ] Preço de referência do milheiro no mercado
 - Limite: a disponibilidade real de assentos não é consultada (sem API pública dos programas); os
   voos vêm de alertas publicados, com atraso de horas e menos volume do que equipes dedicadas.

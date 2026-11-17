@@ -11,6 +11,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // Ocupa a tela toda no iPhone instalado; as barras compensam com safe-area-inset.
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f5f5f2" },
     { media: "(prefers-color-scheme: dark)", color: "#0b0c0e" },
