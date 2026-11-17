@@ -614,3 +614,127 @@ export const tripQuotes = pgTable(
     check("trip_quotes_source_chk", sql`${t.sourceUrl} is null or ${t.sourceUrl} ~* '^https?://'`),
   ],
 );
+
+/* ------------------------------------------------------------------ */
+/* Alertas de voos: avisos de rota e voos encontrados (0.11.0)          */
+/* ------------------------------------------------------------------ */
+
+export const alertDateMode = pgEnum("alert_date_mode", ["qualquer", "prox30", "prox90", "mes", "datas"]);
+export const alertCabin = pgEnum("alert_cabin", ["qualquer", "economica", "executiva"]);
+export const alertPay = pgEnum("alert_pay", ["qualquer", "milhas", "dinheiro"]);
+export const dealKind = pgEnum("deal_kind", ["milhas", "dinheiro"]);
+
+/** Aviso de rota criado pela pessoa ("Novo aviso"). */
+export const routeAlerts = pgTable(
+  "route_alerts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** Lugares escolhidos (rótulo + códigos), para mostrar e editar. */
+    originPlaces: jsonb("origin_places").notNull().default(sql`'[]'::jsonb`),
+    destinationPlaces: jsonb("destination_places").notNull().default(sql`'[]'::jsonb`),
+    /** Códigos IATA aceitos (vazio = qualquer lugar). */
+    originCodes: text("origin_codes").array().notNull().default(sql`'{}'::text[]`),
+    destinationCodes: text("destination_codes").array().notNull().default(sql`'{}'::text[]`),
+    dateMode: alertDateMode("date_mode").notNull().default("qualquer"),
+    month: text("month"),
+    dateFrom: date("date_from"),
+    dateTo: date("date_to"),
+    cabin: alertCabin("cabin").notNull().default("qualquer"),
+    pay: alertPay("pay").notNull().default("qualquer"),
+    maxMiles: integer("max_miles"),
+    maxCashBrl: numeric("max_cash_brl", { precision: 12, scale: 2 }),
+    active: boolean("active").notNull().default(true),
+    ...timestamps,
+  },
+  (t) => [
+    index("route_alerts_user_idx").on(t.userId),
+    check("route_alerts_month_chk", sql`${t.month} is null or ${t.month} ~ '^[0-9]{4}-[0-9]{2}$'`),
+    check("route_alerts_dates_chk", sql`${t.dateFrom} is null or ${t.dateTo} is null or ${t.dateFrom} <= ${t.dateTo}`),
+    check("route_alerts_caps_chk", sql`(${t.maxMiles} is null or ${t.maxMiles} > 0) and (${t.maxCashBrl} is null or ${t.maxCashBrl} > 0)`),
+  ],
+);
+
+/** Cada busca de voos ("Buscar voos agora"). */
+export const flightRuns = pgTable(
+  "flight_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: radarRunStatus("status").notNull().default("executando"),
+    summary: text("summary"),
+    error: text("error"),
+    found: integer("found").notNull().default(0),
+    webSearches: integer("web_searches").notNull().default(0),
+    costUsd: numeric("cost_usd", { precision: 12, scale: 6 }).notNull().default("0"),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+  },
+  (t) => [index("flight_runs_user_idx").on(t.userId, t.startedAt)],
+);
+
+/** Voo (alerta publicado na web) encontrado numa busca, sempre com a fonte. Valores por pessoa e por trecho. */
+export const flightDeals = pgTable(
+  "flight_deals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    runId: uuid("run_id")
+      .notNull()
+      .references(() => flightRuns.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    origin: text("origin").notNull(),
+    destination: text("destination").notNull(),
+    kind: dealKind("kind").notNull(),
+    programSlug: text("program_slug"),
+    programName: text("program_name"),
+    airline: text("airline"),
+    cabin: cabinClass("cabin"),
+    miles: integer("miles"),
+    taxesBrl: numeric("taxes_brl", { precision: 10, scale: 2 }),
+    cashBrl: numeric("cash_brl", { precision: 12, scale: 2 }),
+    roundTrip: boolean("round_trip").notNull().default(false),
+    dateFrom: date("date_from"),
+    dateTo: date("date_to"),
+    seats: smallint("seats"),
+    notes: text("notes"),
+    publishedOn: date("published_on"),
+    sourceUrl: text("source_url").notNull(),
+    sourceName: text("source_name"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("flight_deals_user_idx").on(t.userId, t.createdAt),
+    check("flight_deals_iata_chk", sql`${t.origin} ~ '^[A-Z]{3}$' and ${t.destination} ~ '^[A-Z]{3}$'`),
+    check(
+      "flight_deals_kind_chk",
+      sql`(${t.kind} = 'milhas' and ${t.miles} > 0) or (${t.kind} = 'dinheiro' and ${t.cashBrl} > 0)`,
+    ),
+    check("flight_deals_source_chk", sql`${t.sourceUrl} ~* '^https?://'`),
+  ],
+);
+
+/** Voo que disparou um aviso; seen_at marca quando a pessoa viu. */
+export const routeAlertHits = pgTable(
+  "route_alert_hits",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    alertId: uuid("alert_id")
+      .notNull()
+      .references(() => routeAlerts.id, { onDelete: "cascade" }),
+    dealId: uuid("deal_id")
+      .notNull()
+      .references(() => flightDeals.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    seenAt: timestamp("seen_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("route_alert_hits_uq").on(t.alertId, t.dealId), index("route_alert_hits_user_idx").on(t.userId, t.seenAt)],
+);

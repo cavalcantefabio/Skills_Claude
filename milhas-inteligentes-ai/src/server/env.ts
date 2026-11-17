@@ -32,6 +32,8 @@ const schema = z.object({
     .transform((v) => v === "true"),
   /** Atualizações do Radar de Oportunidades por usuário por dia (cada uma usa busca na web). */
   RADAR_DAILY_LIMIT: z.coerce.number().int().positive().default(3),
+  /** Buscas de voos com milhas (Alertas de Voos) por usuário por dia (cada uma usa busca na web). */
+  FLIGHT_SEARCH_DAILY_LIMIT: z.coerce.number().int().positive().default(4),
   /** Pesquisas de referência de viagem por usuário por dia (cada uma usa busca na web). */
   TRIP_RESEARCH_DAILY_LIMIT: z.coerce.number().int().positive().default(5),
   /** Conexões simultâneas por instância. Em hospedagem serverless (Vercel), use poucas. */

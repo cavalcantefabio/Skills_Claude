@@ -2,6 +2,37 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.11.0] - 2026-11-17 (Alertas de Voos com avisos de rota)
+
+### Adicionado
+- **Alertas de Voos** (novo item do menu, `/voos`), inspirado no funcionamento de apps de alerta de
+  passagens:
+  - **Novo aviso**: painel que sobe de baixo no celular. Campos: "Saindo de" e "Indo para" (região,
+    estado, país, cidade ou aeroporto, com busca e lista completa), data do voo (qualquer, próximos
+    30 dias, próximos 3 meses, os próximos 6 meses ou datas escolhidas), cabine, pago com (milhas,
+    dinheiro ou os dois) e preço máximo. Mostra quantas vezes o aviso teria tocado nos últimos 30 dias,
+    com os voos já encontrados.
+  - **Buscar voos agora**: busca na web (Claude Sonnet 5.5) alertas de passagens publicados nos
+    últimos dias em blogs de milhas, abre os posts e registra cada rota com milhas, taxas, datas e
+    fonte. Voos repetidos, antigos ou com embarque passado são descartados. Limite diário
+    `FLIGHT_SEARCH_DAILY_LIMIT` (padrão 4).
+  - **Feed de voos** por dia: programa, rota em destaque, data, companhia, cabine, assentos (quando
+    a fonte informa), milhas e taxas, "Emitir no programa", **Com os seus saldos** (se já dá para
+    emitir, quanto falta e se os pontos do banco cobrem, custo pelo seu milheiro), Avisar,
+    Compartilhar, Perguntar ao agente e fonte. Filtro por origem.
+  - **Disparos**: voo que bate com um aviso ganha o selo "Seu aviso" e "Novo" e aparece em **Alertas**
+    até ser visto. Ao criar ou editar um aviso, os voos já encontrados são conferidos na hora.
+  - Meus avisos: editar, pausar e excluir.
+- Lista de 146 aeroportos (Brasil por região e estado, e os destinos internacionais mais comuns).
+- Tabelas `route_alerts`, `flight_runs`, `flight_deals` e `route_alert_hits` (migração 0011). Avisos e
+  voos entram no backup JSON.
+
+### Testes
+- 16 testes novos (regras dos avisos, lugares, cartão com saldos e a busca com API simulada), 121 no
+  total. Teste ponta a ponta com 4 verificações novas.
+- Teste real: busca encontrou 9 rotas nacionais em milhas Smiles num alerta publicado no mesmo dia
+  (Pontos pra Voar), 3 delas disparando o aviso "São Paulo → qualquer lugar"; US$ 0,26.
+
 ## [0.10.0] - 2026-11-16 (Agente MILHAS AI com busca na web)
 
 ### Adicionado

@@ -78,6 +78,13 @@
       "when": 1794695686907,
       "tag": "0010_agente_cotacao",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794884666426,
+      "tag": "0011_alertas_voos",
+      "breakpoints": true
     }
   ]
 }

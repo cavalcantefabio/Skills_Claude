@@ -74,6 +74,19 @@
 - [ ] Perguntas de referência para avaliar o agente e o Radar.
 - [ ] Radar automático 2 vezes por semana.
 
+## Alertas de Voos ✅ (0.11.0, inspirado no estilo de apps de alerta de passagens)
+
+- [x] Avisos de rota: origem e destino por região, estado, país, cidade ou aeroporto; datas, cabine,
+      milhas ou dinheiro, teto de preço; prévia de quantas vezes teria tocado em 30 dias
+- [x] Busca de alertas publicados em blogs de milhas, com fonte; feed com "Com os seus saldos"
+- [x] Disparos com selo no feed e item em Alertas
+- [ ] Notificação no celular (app instalável + push)
+- [ ] Busca automática (agendada) com teto de custo
+- [ ] Barra de abas no celular e Estratégias (Radar) em formato de feed
+- [ ] Preço de referência do milheiro no mercado
+- Limite: a disponibilidade real de assentos não é consultada (sem API pública dos programas); os
+  voos vêm de alertas publicados, com atraso de horas e menos volume do que equipes dedicadas.
+
 ## Etapa complementar: Planejador inteligente de viagens ✅ (0.9.0)
 
 - [x] Banco: cotações reais/estimadas, programas considerados, orçamento, flexibilidade, alertas

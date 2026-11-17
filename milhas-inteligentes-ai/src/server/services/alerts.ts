@@ -2,6 +2,8 @@ import "server-only";
 import { listAccounts, listLots } from "@/server/services/accounts";
 import { loadTripPlans } from "@/server/services/trip-plan";
 import { latestRadar } from "@/server/radar/run";
+import { hitsByDeal, listDeals } from "@/server/services/flight-alerts";
+import { dealHeadline } from "@/lib/flight-deal";
 import { opportunityInsight } from "@/lib/radar";
 import { diffDays, todayISO } from "@/lib/dates";
 import { formatBRL, formatDate, formatPoints } from "@/lib/format";
@@ -142,6 +144,21 @@ export async function computeAlerts(userId: string, alertDays: number): Promise<
       description: [o.endsOn ? `Válida até ${formatDate(o.endsOn)}.` : "Término não informado.", ...insight.lines].join(" "),
       href: "/radar",
       question: `Encontrei esta promoção no radar: "${o.title}"${o.endsOn ? `, válida até ${formatDate(o.endsOn)}` : ""}. Vale a pena aproveitar com os meus saldos? Quanto devo transferir ou comprar?`,
+    });
+  }
+
+  // Voos que dispararam avisos de rota e a pessoa ainda não viu.
+  const [deals, hits] = await Promise.all([listDeals(userId), hitsByDeal(userId)]);
+  for (const d of deals) {
+    if (!hits.get(d.id)?.unseen) continue;
+    const h = dealHeadline(d);
+    out.push({
+      id: `voo-${d.id}`,
+      severity: "warning",
+      title: `Voo para o seu aviso: ${h.route}`,
+      description: `${h.price}${h.when ? `, ${h.when}` : ""}. Fonte: ${d.sourceName ?? "alerta publicado"}. Confira a disponibilidade antes de emitir.`,
+      href: "/voos",
+      question: `Apareceu um alerta de voo ${h.route} por ${h.price}${h.when ? ` (${h.when})` : ""}. Vale a pena emitir com os meus saldos? De onde tiro as milhas?`,
     });
   }
 

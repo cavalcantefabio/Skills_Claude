@@ -4,8 +4,8 @@ Aplicativo web para gerenciar pontos, milhas, cartões de crédito e viagens: sa
 programa e por validade, histórico de movimentações, comparação de cartões e
 calculadoras de milheiro, com dashboard e modo claro/escuro.
 
-> **Status (0.10.0):** Etapa 1 aprovada; Agente Inteligente (com busca na web), Radar de
-> Oportunidades e Planejador de viagens em uso. Ver [ROADMAP.md](ROADMAP.md).
+> **Status (0.11.0):** Etapa 1 aprovada; Agente Inteligente (com busca na web), Alertas de
+> Voos, Radar de Oportunidades e Planejador de viagens em uso. Ver [ROADMAP.md](ROADMAP.md).
 
 ## Funcionalidades
 
@@ -19,6 +19,7 @@ calculadoras de milheiro, com dashboard e modo claro/escuro.
 | Minhas Viagens | ✅ | Planejador inteligente: meta de milhas a partir de cotações (reais ou estimadas com fonte), saldo com transferências, quanto falta, melhor programa, milhas x dinheiro, cenários e prazo, simulador, alertas e pesquisa de referências por IA |
 | Alertas | 🟡 parcial | Vencimentos, pontos vencidos, clubes deficitários e viagens sem saldo. Notificações em desenvolvimento |
 | Configurações | ✅ | Perfil, cotação do dólar, janela de alertas, tema, troca de senha e saída de todos os dispositivos |
+| Alertas de Voos | ✅ | Avisos de rota (origem, destino, datas, cabine, milhas ou dinheiro, preço máximo) e busca de alertas de passagens publicados em blogs de milhas, com fonte e o que cada voo significa para os seus saldos. ~US$ 0,25 por busca |
 | Radar de Oportunidades | ✅ | Pesquisa sob demanda (botão) de promoções vigentes de transferência e compra de pontos, com fonte, cálculo para os seus saldos e alertas. Requer `MILHAS_ANTHROPIC_API_KEY`; ~US$ 0,35 por atualização (Claude Sonnet 5.5) |
 | Agente Inteligente | ✅ | Chat com IA que consulta seus dados, faz as contas e propõe lançamentos, transferências e viagens. Pesquisa na web referências de passagens, hotéis e roteiros, com links das fontes (sem garantia de preço ou disponibilidade). Nada é gravado sem sua confirmação. Requer `MILHAS_ANTHROPIC_API_KEY` |
 
@@ -63,6 +64,7 @@ pnpm dev          # http://localhost:3000
 | `ALLOW_SIGNUP` | Padrão `false`: o cadastro só abre enquanto não existe nenhuma conta (uso pessoal). `true` mantém aberto (desenvolvimento e testes) |
 | `DATABASE_POOL_MAX` | Conexões com o banco por instância (padrão 10; use 3 na Vercel) |
 | `TRIP_RESEARCH_DAILY_LIMIT` | Pesquisas de referência de viagem por dia (padrão 5) |
+| `FLIGHT_SEARCH_DAILY_LIMIT` | Buscas de voos (Alertas de Voos) por dia (padrão 4) |
 | `RADAR_DAILY_LIMIT` | Atualizações do Radar por dia (padrão 3) |
 | `AGENT_DAILY_MESSAGE_LIMIT` | Mensagens por usuário por dia ao agente (padrão 60) |
 | `AGENT_WEB_SEARCH` | Busca na web no chat do agente (padrão `true`; `false` desliga). Perguntas que pesquisam custam ~US$ 0,20 a 0,35 |
