@@ -1,0 +1,222 @@
+<title>Gestão Habitar · onde paramos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: uma coluna de leitura (~46rem) com a faixa escura da marca no topo; seções separadas por respiro e um fio. */
+:root{
+  --bg:#F7F5F0; --surface:#FFFFFF; --ink:#1C1915; --muted:#5E574E; --line:#E3DDD1;
+  --bar:#161411; --on-bar:#F6F1E7; --on-bar-muted:#BDB3A2;
+  --gold:#C9963A; --gold-ink:#7E5914; --gold-soft:#FBEFD5;
+  --ok:#2F7A4F; --ok-soft:#E2F0E7; --wait:#5E574E;
+  --brand:"Cinzel","Trajan Pro",Georgia,serif;
+  --display:"Fraunces",Georgia,serif;
+  --body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#100F0D; --surface:#1A1815; --ink:#EEE8DD; --muted:#B2A897; --line:#332F29;
+  --bar:#0A0908; --on-bar:#F6F1E7; --on-bar-muted:#A99F8E;
+  --gold:#D4A24A; --gold-ink:#E3BD6E; --gold-soft:#33270F; --ok:#7CC49A; --ok-soft:#1B2E22; --wait:#B2A897; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#100F0D; --surface:#1A1815; --ink:#EEE8DD; --muted:#B2A897; --line:#332F29;
+  --bar:#0A0908; --on-bar:#F6F1E7; --on-bar-muted:#A99F8E;
+  --gold:#D4A24A; --gold-ink:#E3BD6E; --gold-soft:#33270F; --ok:#7CC49A; --ok-soft:#1B2E22; --wait:#B2A897; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+.top{background:var(--bar);color:var(--on-bar)}
+.top__in,main{max-width:46rem;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top__in{padding-block:36px 32px;display:flex;flex-direction:column;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand svg{width:40px;height:36px}
+.brand b{font:600 1.1rem/1 var(--brand);letter-spacing:.08em}
+.top h1{font:600 clamp(1.9rem,4.5vw,2.5rem)/1.15 var(--display);margin:0;text-wrap:balance}
+.top p{margin:0;color:var(--on-bar-muted);max-width:38rem}
+.top .date{color:var(--gold)}
+main{padding-block:36px 64px;display:flex;flex-direction:column;gap:44px}
+h2{font:600 1.45rem/1.2 var(--display);margin:0;text-wrap:balance}
+h3{font:700 1rem/1.3 var(--body);margin:0}
+p{margin:0}
+a{color:var(--gold-ink);text-underline-offset:2px}
+a:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:2px}
+section{display:flex;flex-direction:column;gap:16px;padding-top:28px;border-top:1px solid var(--line)}
+section>.intro{color:var(--muted)}
+.status{display:flex;flex-direction:column;gap:6px;background:var(--gold-soft);border-radius:12px;padding:16px 18px}
+.status b{color:var(--gold-ink)}
+.links{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.links li{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:space-between;padding:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.links span{color:var(--muted);font-size:.9rem}
+.links .pend{color:var(--muted);font-weight:600}
+.mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:16px 28px}
+.mods div{min-width:0;display:flex;flex-direction:column;gap:4px}
+.mods p{color:var(--muted);font-size:.95rem}
+ul.plain{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+ul.plain li::marker{color:var(--gold)}
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:14px}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:2rem 1fr;gap:10px}
+ol.steps li::before{content:counter(s);font:600 .9rem/1.9rem var(--body);width:1.9rem;height:1.9rem;text-align:center;border:1.5px solid var(--gold);color:var(--gold-ink);border-radius:50%;font-variant-numeric:tabular-nums}
+ol.steps p{color:var(--muted);font-size:.95rem}
+.todo{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.todo li{display:grid;grid-template-columns:5.5rem 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.todo li:last-child{border-bottom:0}
+.todo p{min-width:0}
+.todo small{display:block;color:var(--muted);font-size:.88rem}
+.todo li.done p{color:var(--muted)}
+.tag{font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:99px;align-self:start;margin-top:2px;text-align:center;white-space:nowrap}
+.tag.fabio,.tag.rosane{background:var(--gold-soft);color:var(--gold-ink)}
+.tag.claude{background:var(--ok-soft);color:var(--ok)}
+.tag.feito{border:1px solid var(--line);color:var(--muted)}
+.tag.espera{border:1px dashed var(--wait);color:var(--wait)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+th{font-size:.8rem;color:var(--muted);font-weight:700}
+td:first-child{font-weight:600;white-space:nowrap}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.files{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.files li{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:space-between;font-size:.93rem}
+.files code{font:600 .88rem var(--body);color:var(--ink)}
+.files span{color:var(--muted)}
+footer{color:var(--muted);font-size:.85rem}
+</style>
+
+<header class="top">
+  <div class="top__in">
+    <div class="brand">
+      <svg viewBox="0 0 48 44" aria-hidden="true"><g fill="none" stroke="#C9963A" stroke-width="2.6"><path d="M5 31 21 15l15 15"/><path d="M9 27v7"/><path d="M23.2 8.5L20.2 6.8"/><path d="M27.2 4.8L25.6 1.7"/><path d="M32.6 4.1L32.9 0.7"/><path d="M37.4 6.6L39.8 4.2"/><path d="M39.9 11.4L43.3 10.8"/><path d="M39.2 16.8L42.3 18.3"/><path d="M35.5 20.8L37.2 23.8"/></g><circle cx="31" cy="13" r="6" fill="#C9963A"/></svg>
+      <b>HABITAR</b>
+    </div>
+    <h1>Gestão Habitar: onde paramos</h1>
+    <p>Situação do painel de gestão e do site da Habitar Consultoria, decisões tomadas e pendências. <span class="date">Atualizado em 25/11/2026.</span></p>
+    <p>Para retomar, abra esta página e diga ao Claude “continuar de onde paramos”, colando o link dela.</p>
+  </div>
+</header>
+
+<main>
+  <div class="status">
+    <b>Fase atual: painel pronto, aguardando instalação no Google</b>
+    <p>O código e a prévia com dados fictícios estão prontos e testados. Ainda não existe planilha nem site do Google da Habitar: o próximo passo é seguir o guia de instalação na conta Google do escritório.</p>
+  </div>
+
+  <section>
+    <h2>Links</h2>
+    <ul class="links">
+      <li><a href="https://claude.ai/artifact/2ew9nx6m2ELegoamGtxjuA">Prévia do Gestão Habitar</a><span>Clientes e valores fictícios · aprovada para instalar</span></li>
+      <li><span class="pend">Gestão Habitar (site do Google)</span><span>Ainda não instalado · o link /exec entra aqui</span></li>
+      <li><span class="pend">Planilha Gestão Habitar</span><span>Ainda não criada · passo 1 do guia</span></li>
+      <li><span class="pend">Habitar · Financeiro (restrito)</span><span>Criada automaticamente pela instalação</span></li>
+      <li><a href="fontes/INSTALACAO.md">Guia de instalação</a><span>Passo a passo, guardado junto desta página</span></li>
+      <li><a href="https://github.com/cavalcantefabio/Skills_Claude/tree/claude/friendly-gates-i9mxtk/habitar-painel">Código no GitHub</a><span>Pasta habitar-painel · branch claude/friendly-gates-i9mxtk</span></li>
+      <li><a href="https://claude.ai/artifact/KFWbR9D1q5tYGWy7PqVNCJ">Prévia do site da Habitar</a><span>Landing page com as cores do logo · aguardando dados para publicar</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Instalação</h2>
+    <p class="intro">Uma vez só, uns 15 minutos, na conta Google da Habitar. O guia completo está nos links.</p>
+    <ol class="steps">
+      <li><div><b>Criar a planilha</b><p>Google Drive → Novo → Planilhas Google → planilha em branco chamada “Gestão Habitar”.</p></div></li>
+      <li><div><b>Colar os arquivos no Apps Script</b><p>Extensões → Apps Script: Codigo.gs no lugar de Código.gs, arquivo HTML “Painel” e o appsscript.json (mostrar o manifesto nas configurações do projeto).</p></div></li>
+      <li><div><b>Rodar “instalar”</b><p>Autorizar a tela “O Google não verificou este app” (Avançado → Acessar → Permitir). Cria as abas, a planilha restrita do Financeiro e a rotina das 7h.</p></div></li>
+      <li><div><b>Completar EQUIPE, ETAPAS e CONFIG</b><p>Nome de cada pessoa ao lado do e-mail; ajustar etapas e prazos; e-mail da Agenda Google dos atendimentos.</p></div></li>
+      <li><div><b>Publicar como app da Web</b><p>Executar como: usuário que acessa. Quem pode acessar: qualquer pessoa com Conta do Google. Guardar o link /exec e colar aqui.</p></div></li>
+      <li><div><b>Dar acesso à equipe</b><p>Planilha principal como Editor e agenda com “Fazer alterações nos eventos”. Financeiro só para quem pode ver valores.</p></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Como o painel está montado</h2>
+    <div class="mods">
+      <div><h3>Planilha principal</h3><p>Abas CLIENTES, TAREFAS, HISTÓRICO, ETAPAS, EQUIPE, LISTAS e CONFIG, todas criadas pela função instalar. Colunas com listas de opções (origem, operação, tipo de imóvel, FGTS, situação, motivo de perda).</p></div>
+      <div><h3>Resumo</h3><p>Clientes em andamento, total a financiar, novos e concluídos no mês, tarefas atrasadas; funil por etapa, quem passou do prazo, próximos atendimentos e origem dos clientes no ano.</p></div>
+      <div><h3>Clientes</h3><p>Quadro por etapa (arrastar o cartão muda a etapa) ou lista com busca e filtros. Ficha com dados, tarefas, comentários, histórico, WhatsApp, “Avançar para…” e “Agendar atendimento”.</p></div>
+      <div><h3>Etapas sugeridas</h3><p>Novo contato (2 dias), Simulação (3), Análise de crédito (7), Documentação (10), Avaliação do imóvel (10), Análise jurídica (10), Contrato (7), Registro em cartório (30), Concluído. Prazos editáveis na aba ETAPAS.</p></div>
+      <div><h3>Tarefas automáticas</h3><p>Ao entrar numa etapa nasce a tarefa dela, que se conclui sozinha quando o cliente avança. Às 7h: “Cliente parado em … há N dias” para quem passou do prazo e a tarefa do “Próximo passo” quando a data chega.</p></div>
+      <div><h3>Agenda</h3><p>Lê as próximas 3 semanas da Agenda Google (aba CONFIG) e cria atendimentos ligados ao cliente, que entram no histórico dele.</p></div>
+      <div><h3>Financeiro restrito</h3><p>Planilha separada (LANÇAMENTOS): receitas e despesas previstas e realizadas, resultado do mês, a receber, gráfico de 12 meses. Quem não tem acesso à planilha não vê a aba.</p></div>
+      <div><h3>Quem fez o quê</h3><p>Toda alteração grava o nome de quem fez, pelo e-mail da aba EQUIPE. Se o Google não informar a conta, o painel pergunta “Quem está usando?”.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Decisões tomadas</h2>
+    <ul class="plain">
+      <li>O painel segue o modelo do Gestão IK: site do Google (Apps Script) sobre uma planilha do Google Drive (25/11).</li>
+      <li>Sem base existente: a planilha é criada do zero pela função instalar, que pode ser rodada de novo sem apagar dados.</li>
+      <li>Áreas da 1ª versão: Clientes e funil, Tarefas e prazos, Agenda e Financeiro.</li>
+      <li>O Financeiro fica numa planilha separada e restrita; a principal não guarda valores de honorários.</li>
+      <li>Etapas e prazos são sugestões internas, não regras de banco; a Rosane ajusta na aba ETAPAS.</li>
+      <li>Nada de CPF, senhas bancárias ou cópias de documentos na planilha ou nos comentários (LGPD).</li>
+      <li>Visual com as cores do logo (preto e dourado), igual ao site.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Próximos passos</h2>
+    <ol class="steps">
+      <li><div><b>Instalar o Gestão Habitar</b><p>Seguir o guia e mandar ao Claude o link /exec ou o print de qualquer erro.</p></div></li>
+      <li><div><b>Revisar etapas e prazos com a Rosane</b><p>Confirmar se as 9 etapas batem com a rotina real e quantos dias cada uma costuma levar.</p></div></li>
+      <li><div><b>Cadastrar os clientes atuais</b><p>Pelo botão “Novo cliente” ou direto na aba CLIENTES (deixar ID em branco não funciona pela planilha: cadastrar pelo painel gera o ID e as tarefas).</p></div></li>
+      <li><div><b>Conferir a primeira rotina das 7h</b><p>No dia seguinte à instalação: Apps Script → Execuções, e ver se apareceram as tarefas de clientes parados.</p></div></li>
+      <li><div><b>Ideias para a 2ª etapa</b><p>A decidir: comissão a receber criada ao concluir um cliente, relatório por banco e por origem, metas do mês, importação de uma lista de clientes já existente.</p></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Pendências</h2>
+    <ul class="todo">
+      <li class="done"><span class="tag feito">Feito</span><p>Painel montado e testado na prévia (25/11)<small>Cadastrar cliente, avançar etapa, comentar, criar e concluir tarefa, marcar atendimento e lançar receita, no computador e no celular.</small></p></li>
+      <li><span class="tag fabio">Fábio</span><p>Instalar o painel na conta Google da Habitar<small>Guia nos links. Depois, colar o link /exec nesta página.</small></p></li>
+      <li><span class="tag rosane">Rosane</span><p>Revisar etapas, prazos e tarefas de cada etapa</p></li>
+      <li><span class="tag fabio">Fábio</span><p>Equipe e agenda<small>Nomes e e-mails na aba EQUIPE; e-mail da Agenda Google em CONFIG; compartilhar planilha e agenda com a equipe.</small></p></li>
+      <li><span class="tag claude">Claude</span><p>Conferir a instalação<small>Assim que o link /exec existir: checar abas, rotina das 7h e primeiros cadastros reais.</small></p></li>
+      <li><span class="tag espera">Em espera</span><p>2ª etapa do painel<small>Comissões ligadas aos clientes, relatórios por banco e origem, metas. Quando o Fábio pedir.</small></p></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Site da Habitar</h2>
+    <p class="intro">Landing page pronta, com a foto da Rosane, o logo e as cores dele. Falta preencher os dados abaixo antes de publicar.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Item</th><th>Situação</th></tr></thead>
+        <tbody>
+          <tr><td>Foto da Rosane e logotipo</td><td>Incluídos (20/10)</td></tr>
+          <tr><td>Domínio do site</td><td>A informar</td></tr>
+          <tr><td>CEP do escritório</td><td>A informar</td></tr>
+          <tr><td>Cargo, anos de experiência e história</td><td>A informar (seção Sobre)</td></tr>
+          <tr><td>Bancos parceiros confirmados</td><td>A informar, com os logotipos</td></tr>
+          <tr><td>Forma de cobrança da assessoria</td><td>A informar (FAQ)</td></tr>
+          <tr><td>Razão social e CNPJ</td><td>A informar (rodapé)</td></tr>
+          <tr><td>Encarregado de dados (LGPD)</td><td>A informar (Política de Privacidade)</td></tr>
+          <tr><td>Hospedagem e publicação</td><td>A decidir</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Como atualizar o site do Google</h2>
+    <ol class="steps">
+      <li><div><b>Colar os arquivos novos</b><p>Na planilha principal, Extensões → Apps Script: substituir Painel e, se vier, Codigo.gs. Salvar.</p></div></li>
+      <li><div><b>Criar nova versão</b><p>Implementar → Gerenciar implementações → lápis → Versão: Nova versão → Implementar. Nunca “Nova implementação”, que muda o link.</p></div></li>
+      <li><div><b>Conferir</b><p>Abrir o link com Ctrl+F5. Se aparecer erro, mandar o print para o Claude. Se o servidor ganhou abas ou colunas, rodar “instalar” de novo.</p></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Arquivos-fonte (para o Claude retomar)</h2>
+    <p class="intro">Cópias guardadas junto desta página e na pasta habitar-painel do repositório. Nenhuma contém dados de clientes reais.</p>
+    <ul class="files">
+      <li><a href="fontes/Codigo.gs"><code>fontes/Codigo.gs</code></a><span>servidor: instalação, clientes, tarefas, rotina das 7h, agenda, financeiro</span></li>
+      <li><a href="fontes/Painel.html"><code>fontes/Painel.html</code></a><span>tela do painel, pronta para colar (versão de 25/11)</span></li>
+      <li><a href="fontes/appsscript.json"><code>fontes/appsscript.json</code></a><span>fuso de São Paulo e configuração do app da Web</span></li>
+      <li><a href="fontes/mock.js"><code>fontes/mock.js</code></a><span>dados fictícios da prévia (não vai para o Google)</span></li>
+      <li><a href="fontes/montar_previa.py"><code>fontes/montar_previa.py</code></a><span>monta a prévia a partir do Painel.html e do mock.js</span></li>
+      <li><a href="fontes/INSTALACAO.md"><code>fontes/INSTALACAO.md</code></a><span>guia de instalação</span></li>
+    </ul>
+  </section>
+
+  <footer>Habitar Consultoria &amp; Financiamento Imobiliário · Av. Affonso Pena, 167 · Santos - SP</footer>
+</main>
