@@ -63,6 +63,9 @@ var VALIDACOES = {
 /* ───────────── App da Web ───────────── */
 
 function doGet() {
+  // O Google deixa a pessoa desmarcar permissões na tela de autorização. Sem a de planilhas o painel não
+  // lê nada; isto faz o Google pedir de novo tudo o que faltar antes de abrir.
+  ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL);
   return HtmlService.createTemplateFromFile('Painel').evaluate()
     .setTitle(APP.titulo)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')

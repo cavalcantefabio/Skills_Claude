@@ -306,7 +306,14 @@ function carregar() {
     renderQuem();
     render();
     if (!AG) carregarAgenda();
-  }).catch(function (e) { $('#loading').textContent = 'Não consegui ler a planilha: ' + (e.message || e); });
+  }).catch(function (e) {
+    var msg = String(e.message || e), el = $('#loading');
+    if (/permiss|permission|authoriz/i.test(msg)) {
+      el.innerHTML = '<b>Falta uma permissão do Google.</b><br>Na tela de autorização, todas as caixas precisam estar marcadas (use “Selecionar tudo”). ' +
+        'Para refazer: abra myaccount.google.com/permissions, remova o acesso de “Gestão Habitar” e abra o painel de novo.<br>' +
+        'Se a planilha não foi compartilhada com você, peça acesso de Editor ao Fábio.<br><small>' + esc(msg) + '</small>';
+    } else el.textContent = 'Não consegui ler a planilha: ' + msg;
+  });
 }
 function carregarAgenda() {
   return api('listarAgenda', 21).then(function (r) { AG = r; S.agErro = ''; render(); })
