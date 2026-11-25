@@ -95,17 +95,17 @@ footer{color:var(--muted);font-size:.85rem}
 
 <main>
   <div class="status">
-    <b>Fase atual: painel pronto, aguardando instalação no Google</b>
-    <p>O código e a prévia com dados fictícios estão prontos e testados. Ainda não existe planilha nem site do Google da Habitar: o próximo passo é seguir o guia de instalação na conta Google do escritório.</p>
+    <b>Fase atual: painel instalado e publicado; falta liberar a equipe</b>
+    <p>Planilha Gestão Habitar criada, estrutura instalada e site do Google publicado em 25/11. Próximos passos: conferir o primeiro cadastro real, a primeira rotina das 7h e dar acesso à Rosane e à equipe.</p>
   </div>
 
   <section>
     <h2>Links</h2>
     <ul class="links">
       <li><a href="https://claude.ai/artifact/2ew9nx6m2ELegoamGtxjuA">Prévia do Gestão Habitar</a><span>Clientes e valores fictícios · aprovada para instalar</span></li>
-      <li><span class="pend">Gestão Habitar (site do Google)</span><span>Ainda não instalado · o link /exec entra aqui</span></li>
-      <li><span class="pend">Planilha Gestão Habitar</span><span>Ainda não criada · passo 1 do guia</span></li>
-      <li><span class="pend">Habitar · Financeiro (restrito)</span><span>Criada automaticamente pela instalação</span></li>
+      <li><a href="https://script.google.com/macros/s/AKfycbwasvFCKZOXZsJWnT5Tom9yAADjGiinsDM-c2VlV0sopPILYeX1PO7j61tih5KbpsU/exec">Gestão Habitar (site do Google)</a><span>Painel oficial · cada pessoa entra com a própria conta Google</span></li>
+      <li><span class="pend">Planilha Gestão Habitar</span><span>No Drive do Fábio · link a registrar aqui</span></li>
+      <li><span class="pend">Habitar · Financeiro (restrito)</span><span>No Drive do Fábio · só para quem pode ver valores</span></li>
       <li><a href="fontes/INSTALACAO.md">Guia de instalação</a><span>Passo a passo, guardado junto desta página</span></li>
       <li><a href="https://github.com/cavalcantefabio/Skills_Claude/tree/claude/friendly-gates-i9mxtk/habitar-painel">Código no GitHub</a><span>Pasta habitar-painel · branch claude/friendly-gates-i9mxtk</span></li>
       <li><a href="https://claude.ai/artifact/KFWbR9D1q5tYGWy7PqVNCJ">Prévia do site da Habitar</a><span>Landing page com as cores do logo · aguardando dados para publicar</span></li>
@@ -114,7 +114,7 @@ footer{color:var(--muted);font-size:.85rem}
 
   <section>
     <h2>Instalação</h2>
-    <p class="intro">Uma vez só, uns 15 minutos, na conta Google da Habitar. O guia completo está nos links.</p>
+    <p class="intro">Passos 1 a 5 feitos em 25/11. Falta o passo 6 (acesso da equipe). O guia completo está nos links.</p>
     <ol class="steps">
       <li><div><b>Criar a planilha</b><p>Google Drive → Novo → Planilhas Google → planilha em branco chamada “Gestão Habitar”.</p></div></li>
       <li><div><b>Colar os arquivos no Apps Script</b><p>Extensões → Apps Script: Codigo.gs no lugar de Código.gs, arquivo HTML “Painel” e o appsscript.json (mostrar o manifesto nas configurações do projeto).</p></div></li>
@@ -167,7 +167,9 @@ footer{color:var(--muted);font-size:.85rem}
     <h2>Pendências</h2>
     <ul class="todo">
       <li class="done"><span class="tag feito">Feito</span><p>Painel montado e testado na prévia (25/11)<small>Cadastrar cliente, avançar etapa, comentar, criar e concluir tarefa, marcar atendimento e lançar receita, no computador e no celular.</small></p></li>
-      <li><span class="tag fabio">Fábio</span><p>Instalar o painel na conta Google da Habitar<small>Guia nos links. Depois, colar o link /exec nesta página.</small></p></li>
+      <li class="done"><span class="tag feito">Feito</span><p>Painel instalado e publicado (25/11)<small>Planilha, abas, Financeiro restrito, rotina das 7h e app da Web. Link /exec registrado nos links.</small></p></li>
+      <li><span class="tag fabio">Fábio</span><p>Testar o primeiro cadastro<small>Cadastrar um cliente de teste pelo painel e ver se aparece na aba CLIENTES, com a tarefa da etapa em TAREFAS.</small></p></li>
+      <li><span class="tag fabio">Fábio</span><p>Liberar a Rosane e a equipe<small>Planilha principal como Editor, agenda com “Fazer alterações nos eventos”, link do painel e aviso sobre “O Google não verificou este app”. Financeiro só para quem pode ver valores.</small></p></li>
       <li><span class="tag rosane">Rosane</span><p>Revisar etapas, prazos e tarefas de cada etapa</p></li>
       <li><span class="tag fabio">Fábio</span><p>Equipe e agenda<small>Nomes e e-mails na aba EQUIPE; e-mail da Agenda Google em CONFIG; compartilhar planilha e agenda com a equipe.</small></p></li>
       <li><span class="tag claude">Claude</span><p>Conferir a instalação<small>Assim que o link /exec existir: checar abas, rotina das 7h e primeiros cadastros reais.</small></p></li>
